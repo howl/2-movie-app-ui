@@ -44,7 +44,7 @@ src/
 ├── services/       # api.js, authService.js, movieService.js, adminService.js
 ├── context/        # AuthContext.jsx
 ├── pages/          # LoginPage, SignupPage, SearchPage, MoviePage, FavoritesPage, AdminPage
-├── styles/         # _variables.scss, _mixins.scss, global.scss
+├── styles/         # _variables.scss, _mixins.scss
 ├── utils/          # constants.js, validators.js, storage.js
 ├── App.jsx
 ├── App.scss
@@ -136,7 +136,11 @@ import './LoginPage.scss';
 - **PROHIBIDO** inline styles (`style={{}}`) salvo excepción consultada y aprobada por el usuario
 - Variables globales en `styles/_variables.scss`
 - Mixins reutilizables en `styles/_mixins.scss`
-- Metodología BEM o anidamiento moderado, sin abusar de la profundidad (máximo 3 niveles)
+- Metodología BEM o anidamiento moderado, sin mezclar ambos enfoques en un mismo archivo (máximo 3 niveles de profundidad)
+
+### Extensiones en imports
+- Incluir SIEMPRE la extensión del archivo en imports: `.js`, `.jsx`, `.scss`.
+  Vite puede resolverlas sin extensión, pero se exige explícitamente por consistencia.
 
 ### Otras reglas
 - NO generar comentarios en el código
@@ -167,6 +171,7 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_UR
 | Método | Ruta | Params/Body | Respuesta |
 |---|---|---|---|
 | GET | `/api/v1/movies/search?title=` | `title` (query) | `{ ok, msg (array\|string), peliculas?, token }` |
+**Nota**: `msg` puede ser un array de películas (búsqueda local) o un string (búsqueda externa OMDB). Si es string, los resultados están en `peliculas`. La página debe manejar ambos formatos.
 | GET | `/api/v1/movies/{id}` | `id` (path) | `{ ok, msg (Movie), token }` |
 
 ### Favoritos (usuario)
@@ -260,7 +265,7 @@ pages/ + components/   ← Capa de presentación: renderiza UI, llama a hooks, n
 **Reglas del flujo**:
 - Los componentes NUNCA llaman a servicios directamente. Siempre a través de hooks.
 - Los hooks NUNCA importan componentes. Solo importan servicios y utilidades.
-- Las páginas orquestan hooks y componentes. Un hook por página como máximo.
+- Las páginas orquestan hooks y componentes. Cada página usa los hooks que necesite; si la misma lógica asíncrona se repite en dos o más componentes, se extrae a un hook compartido.
 - Los componentes presentacionales reciben datos por props. No tienen efectos secundarios ni llamadas asíncronas.
 
 ### Manejo de errores y estados
@@ -275,7 +280,7 @@ const MiComponente = () => {
   if (error) return <ErrorMessage message={error} />;
 
   if (!data || (Array.isArray(data) && data.length === 0))
-    return <ErrorMessage message="No se encontraron resultados" />;
+    return <p>No se encontraron resultados</p>;
 
   return <Contenido data={data} />;
 };
@@ -318,6 +323,8 @@ useEffect(() => {
 
 Los componentes presentacionales reciben datos por props desde la página que orquesta los hooks.
 
+Si la misma lógica asíncrona se repite en dos o más componentes, se extrae a un hook compartido (ej: `useFetch` cubre el caso genérico; si surge un patrón específico que se repite, se crea un hook con nombre para ese caso).
+
 ---
 
 ## Guía de pruebas
@@ -340,12 +347,6 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 | hooks/ | Estados loading/error/data, execute | `renderHook` de Testing Library |
 | components/ | Render condicional, eventos, props | `render` + `screen` + `userEvent` |
 
-### TDD por fase
-Cada fase de implementación sigue este orden:
-1. Escribir tests (RED)
-2. Implementar funcionalidad (GREEN)
-3. Refactorizar manteniendo tests verdes (REFACTOR)
-
 ### Archivos de test
 - `*.test.js` junto al archivo que testea
   - `api.test.js` junto a `api.js`
@@ -367,6 +368,14 @@ Cada fase de implementación sigue este orden:
 - Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
+- Crear `src/tests/setup.js` con `import '@testing-library/jest-dom'`
+- Añadir en `vite.config.js` la configuración:
+  ```js
+  test: {
+    setupFiles: ['./src/tests/setup.js'],
+    environment: 'jsdom',
+  }
+  ```
 - ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
 
 ### Fase 1 — Servicios API
@@ -516,6 +525,7 @@ Cada fase de implementación sigue este orden:
 
 - Ejecutar `npm run lint` antes de cada commit
 - Ejecutar `npm run build` para verificar que compila
+- Ejecutar `npm run test:run` para verificar que los tests pasan
 - Formato conventional commits: `tipo(ámbito): descripción`
   - `feat`: nueva funcionalidad o componente
   - `fix`: corrección de bug
