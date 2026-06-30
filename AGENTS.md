@@ -15,8 +15,8 @@ Reglas de comportamiento:
 - No añades comentarios al código ni dependencias innecesarias.
 - Mantienes la barra de navegación (navbar) y el pie de página (footer)
   visibles en todas las páginas.
-- Usas siempre el formato de respuesta estándar de la API para manejar
-  errores y estados de carga.
+- Implementas el patrón loading → error → success en toda la UI
+  (ver "Manejo de errores y estados" en Arquitectura).
 
 # Movie App UI
 
@@ -323,8 +323,6 @@ useEffect(() => {
 
 Los componentes presentacionales reciben datos por props desde la página que orquesta los hooks.
 
-Si la misma lógica asíncrona se repite en dos o más componentes, se extrae a un hook compartido (ej: `useFetch` cubre el caso genérico; si surge un patrón específico que se repite, se crea un hook con nombre para ese caso).
-
 ---
 
 ## Guía de pruebas
@@ -336,9 +334,6 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 - **Framework**: Vitest (integrado con Vite)
 - **Librería**: Testing Library (React) + jest-dom
 - **Mocks**: fetch con `vi.fn()` (sin dependencias externas)
-- **Comandos**:
-  - `npm run test` — modo watch durante desarrollo
-  - `npm run test:run` — ejecución única
 
 ### Cobertura por capa
 | Capa | Qué testear | Cómo |
