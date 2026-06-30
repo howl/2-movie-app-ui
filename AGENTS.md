@@ -65,6 +65,31 @@ src/
 
 ---
 
+## Configuración del entorno
+
+### Variables de entorno
+Las variables de entorno públicas usan el prefijo `MOVIE_` y se definen en un archivo `.env` en la raíz del proyecto.
+
+| Variable | Descripción | Valor por defecto (desarrollo) |
+|---|---|---|
+| `MOVIE_API_URL` | URL base del backend API | `http://localhost:3000` |
+
+**Importante**: Para que Vite exponga variables con prefijo `MOVIE_`, el archivo `vite.config.js` debe incluir `envPrefix: 'MOVIE_'` en la configuración.
+
+### Archivo `.env`
+Crear en la raíz del proyecto:
+```
+MOVIE_API_URL=http://localhost:3000
+```
+
+### Acceso en código
+Las variables de entorno se acceden mediante `import.meta.env`:
+```js
+const API_URL = import.meta.env.MOVIE_API_URL;
+```
+
+---
+
 ## Estilo y convenciones de código
 
 ### Lenguaje y formato
@@ -106,11 +131,18 @@ import './LoginPage.scss';
 - NO usar `@ts-expect-error`, `@ts-ignore` (no hay TypeScript)
 - NO dejar `console.log` en código de producción
 
+### Dependencias
+- **HTTP client**: Usar `fetch` nativo del navegador. NO instalar `axios` ni otras librerías HTTP.
+- **Routing**: `react-router` (ya incluido en el stack).
+- **Estilos**: `sass` para preprocesado CSS. NO instalar frameworks CSS (Bootstrap, Tailwind, etc.).
+- **Estado global**: Solo `AuthContext` + hooks locales. NO instalar librerías de state management (Redux, Zustand, Jotai, etc.).
+- **Utilidades**: NO instalar lodash, ramda u otras librerías de utilidades. Usar funciones nativas de JS.
+
 ---
 
 ## Referencia de la API
 
-Extraído de `@movie-app-api.yaml`. Base URL desde `VITE_API_URL`.
+Extraído de `@movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_URL`.
 
 ### Autenticación
 | Método | Ruta | Body | Respuesta |
@@ -197,6 +229,59 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `VITE_API_URL`.
 - Estado local (hooks) → búsquedas, formularios, listados
 - Sin librería externa de state management
 
+### Flujo de datos
+
+La información viaja a través de 4 capas, cada una con responsabilidades estrictas:
+
+```
+API (backend)
+  ↓ JSON
+services/api.js        ← Capa de transporte HTTP: fetch, headers, token, 401
+services/*Service.js   ← Capa de dominio: llama a api.request() con método/endpoint/body
+  ↓ datos crudos
+hooks/                 ← Capa de estado: encapsula loading/data/error, expone funciones
+  ↓ props + handlers
+pages/ + components/   ← Capa de presentación: renderiza UI, llama a hooks, no llama a servicios
+```
+
+**Reglas del flujo**:
+- Los componentes NUNCA llaman a servicios directamente. Siempre a través de hooks.
+- Los hooks NUNCA importan componentes. Solo importan servicios y utilidades.
+- Las páginas orquestan hooks y componentes. Un hook por página como máximo.
+- Los componentes presentacionales reciben datos por props. No tienen efectos secundarios ni llamadas asíncronas.
+
+### Manejo de errores y estados
+
+Toda página o componente que consuma datos asíncronos DEBE implementar el patrón de 3 estados en este orden:
+
+```jsx
+const MiComponente = () => {
+  const { data, loading, error } = useMiHook();
+
+  if (loading) return <Loading />;
+  if (error) return <ErrorMessage message={error} />;
+
+  if (!data || (Array.isArray(data) && data.length === 0))
+    return <ErrorMessage message="No se encontraron resultados" />;
+
+  return <Contenido data={data} />;
+};
+```
+
+| Estado | Condición | Componente |
+|---|---|---|
+| `loading` | `loading === true` | `<Loading />` (spinner o skeleton) |
+| `error` | `error !== null` | `<ErrorMessage message={error} />` |
+| `success` | `data` válido | Renderizado del contenido |
+| `success` (sin datos) | `!data` o array vacío | Mensaje contextual según dominio |
+
+**Reglas**:
+- Cada hook que haga llamadas asíncronas debe exponer `{ data, loading, error }`.
+- Los mensajes de error deben ser amigables para el usuario, NO técnicos.
+- El caso sin datos es un sub-estado de `success`: la API respondió bien pero no hay contenido. Mostrar mensaje contextual según dominio (búsqueda sin resultados, lista vacía de favoritos, etc.).
+- Los botones de acciones (guardar, eliminar, favorito) deben mostrar estado de carga independiente mientras la operación está en curso.
+- Los errores de validación de formularios se muestran por campo, no como mensaje global.
+
 ---
 
 ## Fases de implementación
@@ -220,7 +305,7 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `VITE_API_URL`.
 - `src/services/movieService.js` — `search(title)`, `getById(id)`, `getFavorites()`, `addFavorite(movieId)`, `removeFavorite(id)`
 - `src/services/adminService.js` — `getAll()`, `create(formData)`, `update(id, formData)`, `remove(id)`
 - `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()`
-- `src/utils/constants.js` — `API_URL` desde `import.meta.env.VITE_API_URL`
+- `src/utils/constants.js` — `API_URL` desde `import.meta.env.MOVIE_API_URL`
 - `src/utils/validators.js` — `isValidEmail()`, `isValidPassword()`, `isRequired()`
 - ✅ Verificar: `npm run lint`
 
@@ -336,7 +421,7 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `VITE_API_URL`.
 - JWT almacenado en `sessionStorage` (se pierde al cerrar pestaña, mitigación XSS parcial)
 - Token extraído en `api.js` y añadido automáticamente a cada request
 - En 401 → logout automático + redirect a login
-- NO hardcodear URLs ni secrets. Usar `VITE_API_URL` (`.env` file)
+- NO hardcodear URLs ni secrets. Usar `MOVIE_API_URL` (`.env` file)
 - Validar formularios en cliente antes de enviar al servidor
 - No mostrar errores técnicos al usuario (solo mensajes amigables)
 
@@ -346,6 +431,15 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `VITE_API_URL`.
 
 - Ejecutar `npm run lint` antes de cada commit
 - Ejecutar `npm run build` para verificar que compila
-- Mensajes descriptivos: `"feat: añadir servicio de autenticación"`, `"refactor: extraer useForm hook"`
+- Formato conventional commits: `tipo(ámbito): descripción`
+  - `feat`: nueva funcionalidad o componente
+  - `fix`: corrección de bug
+  - `refactor`: cambio de código sin nueva funcionalidad ni fix
+  - `style`: cambios de formato (sass, espacios, etc.)
+  - `docs`: cambios en documentación
+  - `test`: añadir o modificar tests
+  - `chore`: cambios en build, dependencias, configuración
+  - `perf`: mejora de rendimiento
+  - Ejemplos: `feat: añadir servicio de autenticación`, `refactor: extraer useForm hook`, `fix: redirigir al login tras 401`
 - Commits atómicos: uno por fase o por componente significativo
 - NO hacer push a menos que se solicite explícitamente
