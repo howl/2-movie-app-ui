@@ -171,8 +171,9 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_UR
 | Método | Ruta | Params/Body | Respuesta |
 |---|---|---|---|
 | GET | `/api/v1/movies/search?title=` | `title` (query) | `{ ok, msg (array\|string), peliculas?, token }` |
-**Nota**: `msg` puede ser un array de películas (búsqueda local) o un string (búsqueda externa OMDB). Si es string, los resultados están en `peliculas`. La página debe manejar ambos formatos.
 | GET | `/api/v1/movies/{id}` | `id` (path) | `{ ok, msg (Movie), token }` |
+
+**Nota de búsqueda**: `msg` puede ser un array de películas (búsqueda local) o un string (búsqueda externa OMDB). Si es string, los resultados están en `peliculas`. La página debe manejar ambos formatos.
 
 ### Favoritos (usuario)
 | Método | Ruta | Body | Respuesta |
@@ -243,9 +244,8 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_UR
 ```
 
 ### Gestión de estado
-- `AuthContext` → estado global de autenticación
-- Estado local (hooks) → búsquedas, formularios, listados
-- Sin librería externa de state management
+- `AuthContext` para estado global de autenticación
+- Estado local (hooks) para búsquedas, formularios, listados
 
 ### Flujo de datos
 
@@ -342,14 +342,6 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 | hooks/ | Estados loading/error/data, execute | `renderHook` de Testing Library |
 | components/ | Render condicional, eventos, props | `render` + `screen` + `userEvent` |
 
-### Archivos de test
-- `*.test.js` junto al archivo que testea
-  - `api.test.js` junto a `api.js`
-  - `authService.test.js` junto a `authService.js`
-  - `useAuth.test.js` junto a `useAuth.js`
-  - `LoginForm.test.js` junto a `LoginForm.jsx`
-  - etc.
-
 ---
 
 ## Fases de implementación
@@ -364,13 +356,15 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
 - Crear `src/tests/setup.js` con `import '@testing-library/jest-dom'`
-- Añadir en `vite.config.js` la configuración:
-  ```js
-  test: {
-    setupFiles: ['./src/tests/setup.js'],
-    environment: 'jsdom',
-  }
-  ```
+- Modificar `vite.config.js`:
+  - Añadir `envPrefix: 'MOVIE_'`
+  - Añadir configuración de test:
+    ```js
+    test: {
+      setupFiles: ['./src/tests/setup.js'],
+      environment: 'jsdom',
+    }
+    ```
 - ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
 
 ### Fase 1 — Servicios API
