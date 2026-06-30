@@ -219,7 +219,7 @@ Extraído de `@movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_UR
 
 ### Flujo de autenticación
 1. Usuario hace login/signup → API devuelve `{ user, token }`
-2. Token se almacena en `sessionStorage` (se pierde al cerrar pestaña)
+2. Token se almacena en `sessionStorage` con clave `auth_token` (se pierde al cerrar pestaña)
 3. `AuthContext` expone `{ user, token, login, logout, isAuthenticated, isAdmin }`
 4. Cada request autenticado incluye `Authorization: Bearer <token>`
 5. `api.js` detecta 401 → logout automático → redirect a `/login`
@@ -323,6 +323,14 @@ useEffect(() => {
 
 Los componentes presentacionales reciben datos por props desde la página que orquesta los hooks.
 
+### ErrorBoundary
+
+Envolver `src/App.jsx` con un componente ErrorBoundary (clase o librería) que capture
+excepciones no controladas en cualquier componente hijo. Ante un error inesperado:
+- Si el error tiene un mensaje legible, mostrarlo al usuario.
+- Si no, mostrar un mensaje genérico: "Ha ocurrido un error inesperado".
+- NO mostrar el error técnico ni el stack trace.
+
 ---
 
 ## Guía de pruebas
@@ -371,16 +379,18 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
    - Tests para api.js, authService.js, movieService.js, adminService.js,
      storage.js, constants.js, validators.js
 2. Implementar archivos (GREEN)
-   - `src/services/api.js` — Cliente HTTP base con fetch.
-     Función `request(endpoint, options)` que:
-     - Lee token de sessionStorage y añade header `Authorization: Bearer <token>`
-     - Parsea el response JSON
-     - Si el response es 401 → limpia token de sessionStorage + lanza error
-     - Extrae el nuevo token del body (`body.token`) y lo guarda en sessionStorage
+    - `src/services/api.js` — Cliente HTTP base con fetch.
+      Función `request(endpoint, options)` que:
+      - Lee token de sessionStorage y añade header `Authorization: Bearer <token>`
+      - Parsea el response JSON
+      - Si el response es 401 → limpia token de sessionStorage + lanza error
+      - Si `body.ok === false` → lanza error con `body.msg`
+      - Extrae el nuevo token del body (`body.token`) y lo guarda en sessionStorage
+      - Devuelve el body parseado (solo llega aquí si `ok: true`)
    - `src/services/authService.js` — `login(email, password)`, `signup(name, email, password)`
    - `src/services/movieService.js` — `search(title)`, `getById(id)`, `getFavorites()`, `addFavorite(movieId)`, `removeFavorite(id)`
    - `src/services/adminService.js` — `getAll()`, `create(formData)`, `update(id, formData)`, `remove(id)`
-   - `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()`
+   - `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()` (clave `auth_token`)
    - `src/utils/constants.js` — `API_URL` desde `import.meta.env.MOVIE_API_URL`
    - `src/utils/validators.js` — `isValidEmail()`, `isValidPassword()`, `isRequired()`
 3. Refactorizar
@@ -410,12 +420,12 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
      - Enlaces: Home, Favorites (solo autenticado), Admin (solo admin)
      - Nombre de usuario + botón Cerrar sesión (si autenticado) / Login + Signup (si no)
    - `src/components/common/Footer.jsx` + `Footer.scss`
-   - `src/components/common/ProtectedRoute.jsx`:
-     - Si `loading` → `<Loading />`
-     - Si no autenticado → `<Navigate to="/login" />`
-     - Si `requiredRole` y no coincide → `<Navigate to="/" />`
-     - Si ok → `<Outlet />`
-   - `src/components/common/Loading.jsx` + `Loading.scss`
+    - `src/components/common/ProtectedRoute.jsx`:
+      - Si `loading` → `<Loading />`
+      - Si no autenticado → guarda la ruta intentada y redirige a `<Navigate to="/login" />`
+      - Si `requiredRole` y no coincide → `<Navigate to="/" />`
+      - Si ok → `<Outlet />`
+    - `src/components/common/Loading.jsx` + `Loading.scss` — componente skeleton
    - `src/components/common/ErrorMessage.jsx` + `ErrorMessage.scss`
    - `src/styles/_variables.scss` — colores, fuentes, breakpoints
    - `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `flex-center`, etc.
@@ -430,7 +440,7 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 1. Escribir tests (RED)
    - Tests para useForm.js, LoginForm.jsx, SignupForm.jsx, LoginPage.jsx, SignupPage.jsx
 2. Implementar archivos (GREEN)
-   - `src/hooks/useForm.js` — hook genérico para formularios: maneja `values`, `errors`, `handleChange`, `handleSubmit`, `setErrors`
+    - `src/hooks/useForm.js` — hook genérico para formularios: maneja `values`, `errors`, `handleChange`, `handleSubmit`, `setErrors`. La validación se ejecuta on blur y on submit.
    - `src/components/auth/LoginForm.jsx` + `LoginForm.scss`:
      - Campos: email, password
      - Botón submit: "Iniciar sesión"
@@ -439,7 +449,7 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
      - Campos: name, email, password
      - Botón submit: "Crear cuenta"
      - Link a Login
-   - `src/pages/LoginPage.jsx` + `LoginPage.scss`
+    - `src/pages/LoginPage.jsx` + `LoginPage.scss` — tras login exitoso, redirige a la ruta que el usuario intentaba visitar; si no hay ruta previa, redirige a `/`
    - `src/pages/SignupPage.jsx` + `SignupPage.scss`
    - Conectar con `authService` y `useAuth`
 3. Refactorizar
@@ -451,22 +461,27 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
      FavoriteButton.jsx, FavoritesList.jsx, useFetch.js,
      SearchPage.jsx, MoviePage.jsx, FavoritesPage.jsx
 2. Implementar archivos (GREEN)
-   - `src/components/movies/SearchBar.jsx` + `SearchBar.scss`:
-     - Input + botón de búsqueda
-     - Debounce opcional (300ms)
-   - `src/components/movies/MovieCard.jsx` + `MovieCard.scss`:
-     - Poster, título, año, director, géneros
-     - Botón de favorito (corazón)
-   - `src/components/movies/MovieList.jsx` + `MovieList.scss`:
-     - Grid responsivo de MovieCards
-     - Mensaje "No se encontraron películas" si empty
-   - `src/components/movies/MovieDetail.jsx` + `MovieDetail.scss`:
-     - Vista detallada de una película (todos los campos del modelo Movie)
-   - `src/components/favorites/FavoriteButton.jsx` + `FavoriteButton.scss`:
-     - Corazón relleno/vacío según estado
-     - Llama a `addFavorite` / `removeFavorite`
-   - `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
-     - Lista de MovieCards filtrados por favoritos
+    - `src/components/movies/SearchBar.jsx` + `SearchBar.scss`:
+      - Input + botón de búsqueda
+      - Debounce de 300ms
+    - `src/components/movies/MovieCard.jsx` + `MovieCard.scss`:
+      - Poster, título, año, director, géneros
+      - Si no hay poster, mostrar recuadro con texto "Sin póster" estilizado
+      - Botón de favorito (corazón)
+    - `src/components/movies/MovieList.jsx` + `MovieList.scss`:
+      - Grid responsivo de MovieCards
+      - Key de cada MovieCard: `movie._id`
+      - Mensaje "No se encontraron películas" si empty
+    - `src/components/movies/MovieDetail.jsx` + `MovieDetail.scss`:
+      - Vista detallada de una película (todos los campos del modelo Movie)
+      - Si no hay poster, mostrar recuadro con texto "Sin póster" estilizado
+    - `src/components/favorites/FavoriteButton.jsx` + `FavoriteButton.scss`:
+      - Corazón relleno/vacío según estado
+      - Llama a `addFavorite` / `removeFavorite`
+      - Espera la respuesta de la API antes de cambiar el estado visual (sin optimistic update)
+    - `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
+      - Lista de MovieCards filtrados por favoritos
+      - Key de cada MovieCard: `movie._id`
    - `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
    - `src/pages/SearchPage.jsx` + `SearchPage.scss`
    - `src/pages/MoviePage.jsx` + `MoviePage.scss`
@@ -478,15 +493,17 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 1. Escribir tests (RED)
    - Tests para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
 2. Implementar archivos (GREEN)
-   - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
-     - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
-   - `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss`:
-     - Formulario completo de película (todos los campos del modelo Movie)
-     - Manejo de `multipart/form-data` para subida de imagen
-     - Modo crear / modo editar
-   - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
-     - Alterna entre tabla y formulario (crear/editar)
-   - Conectar con `adminService`
+    - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
+      - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
+      - Confirmación antes de eliminar (modal o confirm nativo)
+    - `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss`:
+      - Formulario completo de película (todos los campos del modelo Movie)
+      - Manejo de `multipart/form-data` para subida de imagen
+      - Modo crear / modo editar
+      - Tras guardar, mostrar mensaje de éxito y permanecer en la misma vista
+    - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
+      - Alterna entre tabla y formulario (crear/editar)
+    - Conectar con `adminService`
 3. Refactorizar
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
