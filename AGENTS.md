@@ -107,7 +107,7 @@ const API_URL = import.meta.env.MOVIE_API_URL;
 - JavaScript (ES6+ modules). NO TypeScript.
 - Named exports SIEMPRE: `export const ComponentName = () => { ... }`
 - Componentes funcionales + hooks. NUNCA clases.
-- Funciones flecha SIEMPRE. NUNCA usar `function`. Si por algún motivo de fuerza mayor fuese necesario, consultar antes de proceder.
+- Funciones flecha SIEMPRE. NUNCA usar `function`. Si por algún motivo de fuerza mayor fuese necesario, consultar con el usuario antes de proceder.
 
 ### Nomenclatura
 - `PascalCase` → componentes, archivos `.jsx`, archivos `.scss`
@@ -133,7 +133,7 @@ import './LoginPage.scss';
 
 ### Estilos (Sass — estricto)
 - 1 archivo `.scss` por componente, ubicado junto al `.jsx`
-- **PROHIBIDO** inline styles (`style={{}}`) salvo excepción consultada y aprobada
+- **PROHIBIDO** inline styles (`style={{}}`) salvo excepción consultada y aprobada por el usuario
 - Variables globales en `styles/_variables.scss`
 - Mixins reutilizables en `styles/_mixins.scss`
 - Metodología BEM o anidamiento moderado, sin abusar de la profundidad (máximo 3 niveles)
@@ -265,7 +265,7 @@ pages/ + components/   ← Capa de presentación: renderiza UI, llama a hooks, n
 
 ### Manejo de errores y estados
 
-Toda página o componente que consuma datos asíncronos DEBE implementar el patrón de 3 estados en este orden:
+Toda página o componente que consuma datos asíncronos DEBE implementar el patrón de 3 estados (loading, error, success) en este orden, siendo el caso sin datos un sub-estado de success:
 
 ```jsx
 const MiComponente = () => {
@@ -320,143 +320,6 @@ Los componentes presentacionales reciben datos por props desde la página que or
 
 ---
 
-## Fases de implementación
-
-### Fase 0 — Setup inicial
-- `npm install react-router sass`
-- `npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event`
-- Configurar `package.json` con scripts:
-  - `"test": "vitest"`
-  - `"test:run": "vitest run"`
-- Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
-- Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
-- Crear estructura de directorios `src/`
-- ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
-
-### Fase 1 — Servicios API
-**Archivos a crear:**
-- `src/services/api.js` — Cliente HTTP base con fetch.
-  - Función `request(endpoint, options)` que:
-    - Lee token de sessionStorage
-    - Añade header `Authorization: Bearer <token>` si existe
-    - Parsea response JSON
-    - Si response es 401 → `sessionStorage.removeItem('token')` + lanza error
-    - Devuelve el body parseado
-  - Extrae el nuevo token del response (viene en `body.token`) y lo guarda en sessionStorage
-- `src/services/authService.js` — `login(email, password)`, `signup(name, email, password)`
-- `src/services/movieService.js` — `search(title)`, `getById(id)`, `getFavorites()`, `addFavorite(movieId)`, `removeFavorite(id)`
-- `src/services/adminService.js` — `getAll()`, `create(formData)`, `update(id, formData)`, `remove(id)`
-- `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()`
-- `src/utils/constants.js` — `API_URL` desde `import.meta.env.MOVIE_API_URL`
-- `src/utils/validators.js` — `isValidEmail()`, `isValidPassword()`, `isRequired()`
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
-- ✅ Verificar: `npm run lint` + `npm run test:run`
-
-### Fase 2 — Contexto de autenticación
-**Archivos a crear:**
-- `src/context/AuthContext.jsx` — `AuthProvider` + `AuthContext`
-  - Estado: `user`, `token`, `loading` (inicializa leyendo token de sessionStorage)
-  - `login(user, token)` → setea estado + sessionStorage
-  - `logout()` → limpia estado + sessionStorage
-- `src/hooks/useAuth.js` — wrapper de `useContext(AuthContext)` con error si se usa fuera del provider
-- Modificar `src/main.jsx`:
-  - Envolver `<App />` con `<AuthProvider>`
-  - Envolver con `<BrowserRouter>` de react-router
-- Escribir tests unitarios para AuthContext.jsx, useAuth.js
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
-
-### Fase 3 — Layout y componentes base
-**Archivos a crear:**
-- `src/components/common/Navbar.jsx` + `Navbar.scss`:
-  - Logo / nombre de la app
-  - Enlaces: Home, Favorites (solo autenticado), Admin (solo admin)
-  - Nombre de usuario + botón Cerrar sesión (si autenticado) / Login + Signup (si no)
-- `src/components/common/Footer.jsx` + `Footer.scss`
-- `src/components/common/ProtectedRoute.jsx`:
-  - Si `loading` → `<Loading />`
-  - Si no autenticado → `<Navigate to="/login" />`
-  - Si `requiredRole` y no coincide → `<Navigate to="/" />`
-  - Si ok → `<Outlet />`
-- `src/components/common/Loading.jsx` + `Loading.scss`
-- `src/components/common/ErrorMessage.jsx` + `ErrorMessage.scss`
-- `src/styles/_variables.scss` — colores, fuentes, breakpoints
-- `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `flex-center`, etc.
-- `src/index.scss` — reset, imports de variables y mixins, estilos base
-- `src/App.scss` — layout general (min-height 100vh, sticky footer)
-- Modificar `src/App.jsx`:
-  - `<Navbar />` + `<Routes>` (importadas de las pages que se crearán en fases siguientes) + `<Footer />`
-- Escribir tests unitarios para Navbar.jsx, Footer.jsx, ProtectedRoute.jsx,
-  Loading.jsx, ErrorMessage.jsx
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
-
-### Fase 4 — Páginas de autenticación
-**Archivos a crear:**
-- `src/hooks/useForm.js` — hook genérico para formularios: maneja `values`, `errors`, `handleChange`, `handleSubmit`, `setErrors`
-- `src/components/auth/LoginForm.jsx` + `LoginForm.scss`:
-  - Campos: email, password
-  - Botón submit: "Iniciar sesión"
-  - Link a Signup
-- `src/components/auth/SignupForm.jsx` + `SignupForm.scss`:
-  - Campos: name, email, password
-  - Botón submit: "Crear cuenta"
-  - Link a Login
-- `src/pages/LoginPage.jsx` + `LoginPage.scss`
-- `src/pages/SignupPage.jsx` + `SignupPage.scss`
-- Conectar con `authService` y `useAuth`
-- Escribir tests unitarios para useForm.js, LoginForm.jsx, SignupForm.jsx,
-  LoginPage.jsx, SignupPage.jsx
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
-
-### Fase 5 — Páginas de usuario
-**Archivos a crear:**
-- `src/components/movies/SearchBar.jsx` + `SearchBar.scss`:
-  - Input + botón de búsqueda
-  - Debounce opcional (300ms)
-- `src/components/movies/MovieCard.jsx` + `MovieCard.scss`:
-  - Poster, título, año, director, géneros
-  - Botón de favorito (corazón)
-- `src/components/movies/MovieList.jsx` + `MovieList.scss`:
-  - Grid responsivo de MovieCards
-  - Mensaje "No se encontraron películas" si empty
-- `src/components/movies/MovieDetail.jsx` + `MovieDetail.scss`:
-  - Vista detallada de una película (todos los campos del modelo Movie)
-- `src/components/favorites/FavoriteButton.jsx` + `FavoriteButton.scss`:
-  - Corazón relleno/vacío según estado
-  - Llama a `addFavorite` / `removeFavorite`
-- `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
-  - Lista de MovieCards filtrados por favoritos
-- `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
-- `src/pages/SearchPage.jsx` + `SearchPage.scss`
-- `src/pages/MoviePage.jsx` + `MoviePage.scss`
-- `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
-- Escribir tests unitarios para SearchBar.jsx, MovieCard.jsx, MovieList.jsx,
-  MovieDetail.jsx, FavoriteButton.jsx, FavoritesList.jsx, useFetch.js,
-  SearchPage.jsx, MoviePage.jsx, FavoritesPage.jsx
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
-
-### Fase 6 — Páginas de administración
-**Archivos a crear:**
-- `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
-  - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
-- `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss`:
-  - Formulario completo de película (todos los campos del modelo Movie)
-  - Manejo de `multipart/form-data` para subida de imagen
-  - Modo crear / modo editar
-- `src/pages/AdminPage.jsx` + `AdminPage.scss`:
-  - Alterna entre tabla y formulario (crear/editar)
-- Conectar con `adminService`
-- Escribir tests unitarios para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
-
-### Fase 7 — Refinamiento final
-- Redirects en casos edge (token expirado, 401 global)
-- Feedback visual en acciones (estado de carga en botones, mensajes de éxito/error temporales)
-- Responsive básico con media queries via `_mixins.scss`
-- ✅ Verificar: `npm run lint` + `npm run build`
-
----
-
 ## Guía de pruebas
 
 Se aplica TDD (Test-Driven Development): los tests se escriben antes que la
@@ -490,6 +353,151 @@ Cada fase de implementación sigue este orden:
   - `useAuth.test.js` junto a `useAuth.js`
   - `LoginForm.test.js` junto a `LoginForm.jsx`
   - etc.
+
+---
+
+## Fases de implementación
+
+### Fase 0 — Setup inicial
+- `npm install react-router sass`
+- `npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event`
+- Configurar `package.json` con scripts:
+  - `"test": "vitest"`
+  - `"test:run": "vitest run"`
+- Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
+- Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
+- Crear estructura de directorios `src/`
+- ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
+
+### Fase 1 — Servicios API
+1. Escribir tests (RED)
+   - Tests para api.js, authService.js, movieService.js, adminService.js,
+     storage.js, constants.js, validators.js
+2. Implementar archivos (GREEN)
+   - `src/services/api.js` — Cliente HTTP base con fetch.
+     Función `request(endpoint, options)` que:
+     - Lee token de sessionStorage y añade header `Authorization: Bearer <token>`
+     - Parsea el response JSON
+     - Si el response es 401 → limpia token de sessionStorage + lanza error
+     - Extrae el nuevo token del body (`body.token`) y lo guarda en sessionStorage
+   - `src/services/authService.js` — `login(email, password)`, `signup(name, email, password)`
+   - `src/services/movieService.js` — `search(title)`, `getById(id)`, `getFavorites()`, `addFavorite(movieId)`, `removeFavorite(id)`
+   - `src/services/adminService.js` — `getAll()`, `create(formData)`, `update(id, formData)`, `remove(id)`
+   - `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()`
+   - `src/utils/constants.js` — `API_URL` desde `import.meta.env.MOVIE_API_URL`
+   - `src/utils/validators.js` — `isValidEmail()`, `isValidPassword()`, `isRequired()`
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run test:run`
+
+### Fase 2 — Contexto de autenticación
+1. Escribir tests (RED)
+   - Tests para AuthContext.jsx, useAuth.js
+2. Implementar archivos (GREEN)
+   - `src/context/AuthContext.jsx` — `AuthProvider` + `AuthContext`
+     - Estado: `user`, `token`, `loading` (inicializa leyendo token de sessionStorage)
+     - `login(user, token)` → setea estado + sessionStorage
+     - `logout()` → limpia estado + sessionStorage
+   - `src/hooks/useAuth.js` — wrapper de `useContext(AuthContext)` con error si se usa fuera del provider
+   - Modificar `src/main.jsx`:
+     - Envolver `<App />` con `<AuthProvider>`
+     - Envolver con `<BrowserRouter>` de react-router
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+
+### Fase 3 — Layout y componentes base
+1. Escribir tests (RED)
+   - Tests para Navbar.jsx, Footer.jsx, ProtectedRoute.jsx, Loading.jsx, ErrorMessage.jsx
+2. Implementar archivos (GREEN)
+   - `src/components/common/Navbar.jsx` + `Navbar.scss`:
+     - Logo / nombre de la app
+     - Enlaces: Home, Favorites (solo autenticado), Admin (solo admin)
+     - Nombre de usuario + botón Cerrar sesión (si autenticado) / Login + Signup (si no)
+   - `src/components/common/Footer.jsx` + `Footer.scss`
+   - `src/components/common/ProtectedRoute.jsx`:
+     - Si `loading` → `<Loading />`
+     - Si no autenticado → `<Navigate to="/login" />`
+     - Si `requiredRole` y no coincide → `<Navigate to="/" />`
+     - Si ok → `<Outlet />`
+   - `src/components/common/Loading.jsx` + `Loading.scss`
+   - `src/components/common/ErrorMessage.jsx` + `ErrorMessage.scss`
+   - `src/styles/_variables.scss` — colores, fuentes, breakpoints
+   - `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `flex-center`, etc.
+   - `src/index.scss` — reset, imports de variables y mixins, estilos base
+   - `src/App.scss` — layout general (min-height 100vh, sticky footer)
+   - Modificar `src/App.jsx`:
+     - `<Navbar />` + `<Routes>` (importadas de las páginas que se crearán en fases siguientes) + `<Footer />`
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+
+### Fase 4 — Páginas de autenticación
+1. Escribir tests (RED)
+   - Tests para useForm.js, LoginForm.jsx, SignupForm.jsx, LoginPage.jsx, SignupPage.jsx
+2. Implementar archivos (GREEN)
+   - `src/hooks/useForm.js` — hook genérico para formularios: maneja `values`, `errors`, `handleChange`, `handleSubmit`, `setErrors`
+   - `src/components/auth/LoginForm.jsx` + `LoginForm.scss`:
+     - Campos: email, password
+     - Botón submit: "Iniciar sesión"
+     - Link a Signup
+   - `src/components/auth/SignupForm.jsx` + `SignupForm.scss`:
+     - Campos: name, email, password
+     - Botón submit: "Crear cuenta"
+     - Link a Login
+   - `src/pages/LoginPage.jsx` + `LoginPage.scss`
+   - `src/pages/SignupPage.jsx` + `SignupPage.scss`
+   - Conectar con `authService` y `useAuth`
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+
+### Fase 5 — Páginas de usuario
+1. Escribir tests (RED)
+   - Tests para SearchBar.jsx, MovieCard.jsx, MovieList.jsx, MovieDetail.jsx,
+     FavoriteButton.jsx, FavoritesList.jsx, useFetch.js,
+     SearchPage.jsx, MoviePage.jsx, FavoritesPage.jsx
+2. Implementar archivos (GREEN)
+   - `src/components/movies/SearchBar.jsx` + `SearchBar.scss`:
+     - Input + botón de búsqueda
+     - Debounce opcional (300ms)
+   - `src/components/movies/MovieCard.jsx` + `MovieCard.scss`:
+     - Poster, título, año, director, géneros
+     - Botón de favorito (corazón)
+   - `src/components/movies/MovieList.jsx` + `MovieList.scss`:
+     - Grid responsivo de MovieCards
+     - Mensaje "No se encontraron películas" si empty
+   - `src/components/movies/MovieDetail.jsx` + `MovieDetail.scss`:
+     - Vista detallada de una película (todos los campos del modelo Movie)
+   - `src/components/favorites/FavoriteButton.jsx` + `FavoriteButton.scss`:
+     - Corazón relleno/vacío según estado
+     - Llama a `addFavorite` / `removeFavorite`
+   - `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
+     - Lista de MovieCards filtrados por favoritos
+   - `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
+   - `src/pages/SearchPage.jsx` + `SearchPage.scss`
+   - `src/pages/MoviePage.jsx` + `MoviePage.scss`
+   - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+
+### Fase 6 — Páginas de administración
+1. Escribir tests (RED)
+   - Tests para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
+2. Implementar archivos (GREEN)
+   - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
+     - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
+   - `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss`:
+     - Formulario completo de película (todos los campos del modelo Movie)
+     - Manejo de `multipart/form-data` para subida de imagen
+     - Modo crear / modo editar
+   - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
+     - Alterna entre tabla y formulario (crear/editar)
+   - Conectar con `adminService`
+3. Refactorizar
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+
+### Fase 7 — Refinamiento final
+- Redirects en casos edge (token expirado, 401 global)
+- Feedback visual en acciones (estado de carga en botones, mensajes de éxito/error temporales)
+- Responsive básico con media queries via `_mixins.scss`
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ---
 
