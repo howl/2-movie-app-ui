@@ -313,6 +313,10 @@ Los componentes presentacionales reciben datos por props desde la página que or
 
 ### Fase 0 — Setup inicial
 - `npm install react-router sass`
+- `npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event`
+- Configurar `package.json` con scripts:
+  - `"test": "vitest"`
+  - `"test:run": "vitest run"`
 - Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
@@ -334,7 +338,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/utils/storage.js` — `getToken()`, `setToken(token)`, `removeToken()`
 - `src/utils/constants.js` — `API_URL` desde `import.meta.env.MOVIE_API_URL`
 - `src/utils/validators.js` — `isValidEmail()`, `isValidPassword()`, `isRequired()`
-- ✅ Verificar: `npm run lint`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run test:run`
 
 ### Fase 2 — Contexto de autenticación
 **Archivos a crear:**
@@ -346,7 +352,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - Modificar `src/main.jsx`:
   - Envolver `<App />` con `<AuthProvider>`
   - Envolver con `<BrowserRouter>` de react-router
-- ✅ Verificar: `npm run lint` + `npm run build`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 3 — Layout y componentes base
 **Archivos a crear:**
@@ -368,7 +376,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/App.scss` — layout general (min-height 100vh, sticky footer)
 - Modificar `src/App.jsx`:
   - `<Navbar />` + `<Routes>` (importadas de las pages que se crearán en fases siguientes) + `<Footer />`
-- ✅ Verificar: `npm run lint` + `npm run build`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 4 — Páginas de autenticación
 **Archivos a crear:**
@@ -384,7 +394,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/LoginPage.jsx` + `LoginPage.scss`
 - `src/pages/SignupPage.jsx` + `SignupPage.scss`
 - Conectar con `authService` y `useAuth`
-- ✅ Verificar: `npm run lint` + `npm run build`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 5 — Páginas de usuario
 **Archivos a crear:**
@@ -408,7 +420,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/SearchPage.jsx` + `SearchPage.scss`
 - `src/pages/MoviePage.jsx` + `MoviePage.scss`
 - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
-- ✅ Verificar: `npm run lint` + `npm run build`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 6 — Páginas de administración
 **Archivos a crear:**
@@ -421,7 +435,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
   - Alterna entre tabla y formulario (crear/editar)
 - Conectar con `adminService`
-- ✅ Verificar: `npm run lint` + `npm run build`
+- Escribir tests unitarios para api.js, authService.js, movieService.js,
+  adminService.js, storage.js, constants.js, validators.js
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 7 — Refinamiento final
 - Redirects en casos edge (token expirado, 401 global)
@@ -431,14 +447,39 @@ Los componentes presentacionales reciben datos por props desde la página que or
 
 ---
 
-## Guía de pruebas (preparado para futuro)
+## Guía de pruebas
 
-- **Framework**: Vitest
-- **Librería**: Testing Library (React)
-- **Tests unitarios**: servicios (mockeando fetch), hooks, utilidades, validators
-- **Tests de componentes**: renderizar, interactuar, verificar output
-- **Tests de integración**: flujo completo (login → buscar → favorito)
-- Archivos de test: `*.test.js` o `*.spec.js` junto al archivo que testean
+Se aplica TDD (Test-Driven Development): los tests se escriben antes que la
+implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
+
+### Stack de testing
+- **Framework**: Vitest (integrado con Vite)
+- **Librería**: Testing Library (React) + jest-dom
+- **Mocks**: fetch con `vi.fn()` (sin dependencias externas)
+- **Comandos**:
+  - `npm run test` — modo watch durante desarrollo
+  - `npm run test:run` — ejecución única
+
+### Cobertura por capa
+| Capa | Qué testear | Cómo |
+|---|---|---|
+| services/ | Llamadas HTTP, parseo, errores | Mockear `global.fetch` con `vi.fn()` |
+| hooks/ | Estados loading/error/data, execute | `renderHook` de Testing Library |
+| components/ | Render condicional, eventos, props | `render` + `screen` + `userEvent` |
+
+### TDD por fase
+Cada fase de implementación sigue este orden:
+1. Escribir tests (RED)
+2. Implementar funcionalidad (GREEN)
+3. Refactorizar manteniendo tests verdes (REFACTOR)
+
+### Archivos de test
+- `*.test.js` junto al archivo que testea
+  - `api.test.js` junto a `api.js`
+  - `authService.test.js` junto a `authService.js`
+  - `useAuth.test.js` junto a `useAuth.js`
+  - `LoginForm.test.js` junto a `LoginForm.jsx`
+  - etc.
 
 ---
 
