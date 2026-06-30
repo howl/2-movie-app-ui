@@ -9,7 +9,7 @@ arquitectura de componentes, flujo de autenticación y plan de fases.
 
 Reglas de comportamiento:
 - Lees TODO el archivo AGENTS.md antes de comenzar cualquier tarea.
-- Ejecutas `npm run lint` y `npm run build` al finalizar cada fase.
+- Ejecutas `npm run lint`, `npm run test:run` y `npm run build` al finalizar cada fase.
 - Si algo no está especificado, preguntas antes de asumir.
 - No generas código que no se te haya solicitado explícitamente.
 - No añades comentarios al código ni dependencias innecesarias.
@@ -50,6 +50,15 @@ src/
 ├── App.scss
 ├── main.jsx
 └── index.scss
+---
+Los archivos de test (`*.test.js` o `*.test.jsx`) se ubican junto al archivo
+que testean. Ejemplo:
+```
+services/
+├── api.js
+├── api.test.js         ← aquí
+├── authService.js
+└── authService.test.js ← aquí
 ```
 
 ---
@@ -62,6 +71,8 @@ src/
 | `npm run build` | Build para producción |
 | `npm run lint` | ESLint check |
 | `npm run preview` | Preview del build |
+| `npm run test` | Tests en modo watch |
+| `npm run test:run` | Tests ejecución única (CI) |
 
 ---
 
@@ -320,7 +331,7 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
-- ✅ Verificar: `npm run dev` no da errores
+- ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
 
 ### Fase 1 — Servicios API
 **Archivos a crear:**
@@ -352,8 +363,7 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - Modificar `src/main.jsx`:
   - Envolver `<App />` con `<AuthProvider>`
   - Envolver con `<BrowserRouter>` de react-router
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
+- Escribir tests unitarios para AuthContext.jsx, useAuth.js
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 3 — Layout y componentes base
@@ -376,8 +386,8 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/App.scss` — layout general (min-height 100vh, sticky footer)
 - Modificar `src/App.jsx`:
   - `<Navbar />` + `<Routes>` (importadas de las pages que se crearán en fases siguientes) + `<Footer />`
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
+- Escribir tests unitarios para Navbar.jsx, Footer.jsx, ProtectedRoute.jsx,
+  Loading.jsx, ErrorMessage.jsx
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 4 — Páginas de autenticación
@@ -394,8 +404,8 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/LoginPage.jsx` + `LoginPage.scss`
 - `src/pages/SignupPage.jsx` + `SignupPage.scss`
 - Conectar con `authService` y `useAuth`
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
+- Escribir tests unitarios para useForm.js, LoginForm.jsx, SignupForm.jsx,
+  LoginPage.jsx, SignupPage.jsx
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 5 — Páginas de usuario
@@ -420,8 +430,9 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/SearchPage.jsx` + `SearchPage.scss`
 - `src/pages/MoviePage.jsx` + `MoviePage.scss`
 - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
+- Escribir tests unitarios para SearchBar.jsx, MovieCard.jsx, MovieList.jsx,
+  MovieDetail.jsx, FavoriteButton.jsx, FavoritesList.jsx, useFetch.js,
+  SearchPage.jsx, MoviePage.jsx, FavoritesPage.jsx
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 6 — Páginas de administración
@@ -435,8 +446,7 @@ Los componentes presentacionales reciben datos por props desde la página que or
 - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
   - Alterna entre tabla y formulario (crear/editar)
 - Conectar con `adminService`
-- Escribir tests unitarios para api.js, authService.js, movieService.js,
-  adminService.js, storage.js, constants.js, validators.js
+- Escribir tests unitarios para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ### Fase 7 — Refinamiento final
