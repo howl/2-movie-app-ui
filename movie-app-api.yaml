@@ -1,0 +1,1250 @@
+openapi: 3.1.0
+info:
+  title: Movie App API
+  description: |
+    API REST para la gestión de un catálogo de películas con autenticación JWT,
+    soporte de favoritos por usuario, roles (admin/user) e integración con
+    fuentes externas (OMDB) y almacenamiento de imágenes en Cloudinary.
+  version: 1.0.0
+  contact:
+    url: https://github.com/carlospmendiola/Proyecto-Movie-App
+
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local
+  - url: https://proyecto-movie-app.onrender.com
+    description: Producción (Render)
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión
+      description: >
+        Autentica un usuario existente con su email y contraseña.
+        Devuelve un token JWT (HS512, 1h de expiración) y los datos públicos del usuario.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: Correo electrónico del usuario
+                  example: user1@example.com
+                password:
+                  type: string
+                  description: Contraseña del usuario
+                  example: "12345678"
+      responses:
+        "200":
+          description: Sesión iniciada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: Sesión iniciada
+                  user:
+                    $ref: "#/components/schemas/UserPublic"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "401":
+          description: Contraseña incorrecta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                ok: false
+                msg: Contraseña incorrecta
+        "404":
+          description: Usuario inexistente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                ok: false
+                msg: Usuario inexistente
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/auth/signup:
+    post:
+      tags:
+        - Autenticación
+      summary: Registrar nuevo usuario
+      description: >
+        Crea una nueva cuenta de usuario. La contraseña se cifra con bcrypt (12 rondas)
+        mediante un hook de Mongoose. Devuelve un token JWT y los datos públicos del usuario.
+      operationId: signupUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  description: Nombre público del usuario
+                  example: user1
+                email:
+                  type: string
+                  format: email
+                  maxLength: 100
+                  description: Correo electrónico (debe ser único)
+                  example: user1@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 72
+                  description: >
+                    Contraseña. Debe contener al menos una letra, un número
+                    y un carácter especial (validación isStrongPassword).
+                  example: "12345678"
+      responses:
+        "201":
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: Nuevo usuario registrado
+                  user:
+                    $ref: "#/components/schemas/UserPublic"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "409":
+          description: El email ya está registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                ok: false
+                msg: Email ya registrado. Utiliza recordar contraseña si la has olvidado.
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/movies/search:
+    get:
+      tags:
+        - Películas (usuario)
+      summary: Buscar películas por título
+      description: >
+        Busca películas cuyo título coincida (insensible a mayúsculas/minúsculas)
+        en la base de datos local. Si no se encuentran resultados locales,
+        consulta la API externa de OMDB. El token JWT se renueva en cada petición.
+      operationId: searchMovies
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: title
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Título o fragmento del título a buscar
+          example: Matrix
+      responses:
+        "200":
+          description: >
+            Películas encontradas. La respuesta varía según la procedencia:
+            si se encontraron en base de datos local, `msg` contiene el array;
+            si se obtuvo de OMDB, `msg` es un texto informativo y `peliculas`
+            contiene los resultados.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/SuccessLocalSearchResponse"
+                  - $ref: "#/components/schemas/SuccessExternalSearchResponse"
+        "400":
+          description: Error de validación (title vacío o no enviado)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/movies/favorites:
+    get:
+      tags:
+        - Películas (usuario)
+      summary: Obtener favoritos del usuario
+      description: >
+        Devuelve la lista de películas favoritas del usuario autenticado.
+        Los datos de cada película se obtienen mediante populate de Mongoose.
+      operationId: getFavorites
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de favoritos encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: No se encontraron películas en favoritos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: No se encontraron películas en favoritos
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Películas (usuario)
+      summary: Añadir película a favoritos
+      description: >
+        Añade una película a la lista de favoritos del usuario autenticado.
+        Si la película no existe en la base de datos local, se obtienen sus
+        datos desde OMDB y se guardan antes de añadirla a favoritos.
+      operationId: addFavorite
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [movieId]
+              properties:
+                movieId:
+                  type: string
+                  description: >
+                    ID de la película en MongoDB (ObjectId de 24 caracteres hex)
+                    o ID externo de IMDB (formato tt seguido de 7 a 10 dígitos).
+                  example: "64a1b2c3d4e5f6a7b8c9d0e1"
+      responses:
+        "201":
+          description: Película añadida a favoritos correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Movie added to favorites successfully
+                  favorites:
+                    type: array
+                    items:
+                      type: string
+                    description: Array de IDs de películas en favoritos
+        "400":
+          description: >
+            La película ya está en favoritos, o error de validación del ID
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Movie is already in your favorites
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Server error adding favorite
+
+  /api/v1/movies/favorites/{id}:
+    delete:
+      tags:
+        - Películas (usuario)
+      summary: Eliminar película de favoritos
+      description: >
+        Elimina una película de la lista de favoritos del usuario autenticado
+        utilizando el ID de MongoDB de la película.
+      operationId: removeFavorite
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB de la película a eliminar de favoritos
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+      responses:
+        "200":
+          description: Favorito eliminado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: Favorito eliminado
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: Error de validación del ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: La película no existe en favoritos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: La película a borrar no existe en favoritos
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/movies/{id}:
+    get:
+      tags:
+        - Películas (usuario)
+      summary: Obtener detalle de una película
+      description: >
+        Devuelve los datos completos de una película de la base de datos local
+        a partir de su ObjectId de MongoDB.
+      operationId: getMovieById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB de la película
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+      responses:
+        "200":
+          description: Datos de la película
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: Error de validación del ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: Película no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: No se encontró la película
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/admin/movies:
+    get:
+      tags:
+        - Administración (admin)
+      summary: Obtener todas las películas
+      description: >
+        Devuelve el listado completo de todas las películas de la base de datos.
+        Solo accesible para usuarios con rol de administrador.
+      operationId: adminGetAllMovies
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Listado de películas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: 16 películas encontradas
+                  movies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: No se encontraron películas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: No se encontraron películas
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Administración (admin)
+      summary: Crear una nueva película
+      description: >
+        Crea una nueva película en la base de datos. Requiere una imagen
+        (poster) que se sube a Cloudinary mediante Multer. Todos los campos
+        excepto `externalId` son obligatorios.
+      operationId: adminCreateMovie
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image, title, synopsis, director, genres, year, duration]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >
+                    Archivo de imagen del póster (jpg, jpeg, png o gif).
+                    Tamaño máximo: 5 MB. Se almacena en Cloudinary.
+                title:
+                  type: string
+                  maxLength: 255
+                  description: Título de la película
+                  example: Origen
+                synopsis:
+                  type: string
+                  maxLength: 2000
+                  description: Sinopsis de la película
+                  example: >-
+                    Un ladrón que roba secretos corporativos a través del uso
+                    de la tecnología de compartir sueños...
+                director:
+                  type: string
+                  maxLength: 100
+                  description: >
+                    Director(es) de la película. Si hay más de uno se separan
+                    por comas.
+                  example: Christopher Nolan
+                genres:
+                  type: array
+                  items:
+                    type: string
+                  description: Géneros de la película
+                  example: [Aventura]
+                year:
+                  type: integer
+                  minimum: 1888
+                  maximum: 2026
+                  description: Año de publicación
+                  example: 2010
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  description: Duración en minutos
+                  example: 148
+                externalId:
+                  type: string
+                  maxLength: 12
+                  description: ID externo de IMDB (formato ttXXXXXXX)
+                  example: tt1375666
+      responses:
+        "201":
+          description: Película creada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: Película creada
+                  movie:
+                    $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: >
+            Error de validación de campos o imagen obligatoria no enviada
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ValidationErrorResponse"
+                  - type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        enum: [false]
+                      msg:
+                        type: string
+                        example: La imagen es obligatoria
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "500":
+          description: Error interno del servidor o error en subida de imagen
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorResponse"
+                  - type: object
+                    properties:
+                      ok:
+                        type: boolean
+                        enum: [false]
+                      msg:
+                        type: string
+                        example: Error al subir la imagen
+
+  /api/v1/admin/movies/{id}:
+    get:
+      tags:
+        - Administración (admin)
+      summary: Obtener una película por ID
+      description: >
+        Devuelve los datos completos de una película a partir de su ObjectId.
+        Solo accesible para administradores.
+      operationId: adminGetMovieById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB de la película
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+      responses:
+        "200":
+          description: Datos de la película
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: Error de validación del ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: Película no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: No se encontró la película
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      tags:
+        - Administración (admin)
+      summary: Editar una película existente
+      description: >
+        Actualiza los datos de una película existente. Todos los campos son
+        opcionales (se actualizan solo los enviados). La imagen es opcional;
+        si se envía una nueva, se reemplaza la anterior en Cloudinary.
+      operationId: adminUpdateMovie
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB de la película a editar
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: >
+                    Nueva imagen del póster (jpg, jpeg, png o gif).
+                    Tamaño máximo: 5 MB.
+                title:
+                  type: string
+                  maxLength: 255
+                  description: Nuevo título
+                  example: Origen (Actualizado)
+                synopsis:
+                  type: string
+                  maxLength: 2000
+                  description: Nueva sinopsis
+                director:
+                  type: string
+                  maxLength: 100
+                  description: Nuevo director(es)
+                genres:
+                  type: array
+                  items:
+                    type: string
+                  description: Nuevos géneros
+                year:
+                  type: integer
+                  minimum: 1888
+                  maximum: 2026
+                  description: Nuevo año
+                duration:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  description: Nueva duración en minutos
+                externalId:
+                  type: string
+                  pattern: "^tt\\d{7,10}$"
+                  maxLength: 12
+                  description: Nuevo ID externo de IMDB
+      responses:
+        "200":
+          description: Película actualizada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: pelicula editada
+                  movie:
+                    $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: Error de validación de campos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: Película no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: No se encontró la película a actualizar
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      tags:
+        - Administración (admin)
+      summary: Eliminar una película
+      description: >
+        Elimina una película de la base de datos por su ObjectId. También
+        elimina automáticamente la referencia de esa película de las listas
+        de favoritos de todos los usuarios.
+      operationId: adminDeleteMovie
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB de la película a eliminar
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+      responses:
+        "200":
+          description: Película eliminada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: Película borrada
+                  movie:
+                    $ref: "#/components/schemas/Movie"
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "400":
+          description: Error de validación del ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Token no enviado o inválido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Acceso prohibido (rol insuficiente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolErrorResponse"
+        "404":
+          description: Película no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: Película no encontrada
+                  token:
+                    $ref: "#/components/schemas/JWTToken"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /populateDB:
+    get:
+      tags:
+        - Utilidades
+      summary: Poblar la base de datos con datos iniciales
+      description: >
+        Inserta datos de prueba en la base de datos (16 películas y 4 usuarios)
+        si las colecciones están vacías. Si ya existen documentos, no hace nada.
+        Los usuarios de prueba son: admin1, admin2, user1, user2.
+      operationId: populateDatabase
+      responses:
+        "200":
+          description: La base de datos ya contiene datos, no se requiere población
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: No hay necesidad de poblar la base de datos, ya existe
+        "201":
+          description: Base de datos poblada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [true]
+                  msg:
+                    type: string
+                    example: "¡Base de datos poblada y relacionada con éxito!"
+        "500":
+          description: Error en la inserción masiva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    enum: [false]
+                  msg:
+                    type: string
+                    example: Error en la inserción masiva
+
+components:
+  schemas:
+    Movie:
+      type: object
+      description: >
+        Modelo de datos de una película. Los campos `_id`, `createdAt`,
+        `updatedAt` y `version` son gestionados automáticamente por Mongoose.
+      properties:
+        _id:
+          type: string
+          pattern: "^[a-fA-F0-9]{24}$"
+          description: ObjectId de MongoDB generado automáticamente
+          example: 64a1b2c3d4e5f6a7b8c9d0e1
+        title:
+          type: string
+          maxLength: 255
+          description: Título de la película (requerido)
+          example: Origen
+        image:
+          type: string
+          description: >
+            URL de la imagen del póster. Puede ser una URL de Cloudinary o
+            una ruta local a `src/public/uploads/`.
+          example: https://res.cloudinary.com/dxqu5nylx/image/upload/v123456/movie-app/poster.jpg
+        synopsis:
+          type: string
+          maxLength: 2000
+          description: Sinopsis de la película (requerido)
+          example: >-
+            Un ladrón que roba secretos corporativos a través del uso de la
+            tecnología de compartir sueños...
+        year:
+          type: integer
+          minimum: 1888
+          maximum: 9999
+          description: Año de publicación (requerido)
+          example: 2010
+        director:
+          type: string
+          maxLength: 100
+          description: >
+            Director(es) de la película (requerido). Múltiples directores
+            separados por coma.
+          example: Christopher Nolan
+        genres:
+          type: array
+          items:
+            type: string
+          description: Géneros de la película (requerido)
+          example:
+            - Aventura
+        duration:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Duración en minutos (requerido)
+          example: 148
+        externalId:
+          type: string
+          maxLength: 12
+          description: >
+            ID externo de la película (IMDB ID). Vacío si no se ha obtenido
+            de un proveedor externo.
+          example: tt1375666
+        version:
+          type: integer
+          description: Número de versión del documento (Mongoose versionKey)
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación del documento (Mongoose timestamps)
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha de última actualización del documento (Mongoose timestamps)
+      required:
+        - title
+        - synopsis
+        - year
+        - director
+        - genres
+        - duration
+
+    UserPublic:
+      type: object
+      description: >
+        Datos públicos de un usuario (sin contraseña ni datos sensibles).
+        El campo `password` tiene `select: false` en el esquema de Mongoose.
+      properties:
+        name:
+          type: string
+          maxLength: 30
+          description: Nombre público del usuario
+          example: user1
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Correo electrónico del usuario
+          example: user1@example.com
+        rol:
+          type: string
+          enum: [admin, user]
+          description: Rol del usuario en el sistema
+          example: user
+
+    JWTToken:
+      type: string
+      description: >
+        Token JWT generado con algoritmo HS512 y expiración de 1 hora.
+        Se renueva automáticamente en cada petición autenticada.
+        Se envía en el header `Authorization: Bearer <token>`.
+      example: >-
+        eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YTFiMmMzZDRlNWY2YTdiOGM5ZDBlMSIsInJvbCI6InVzZXIiLCJpYXQiOjE3ODAzOTEyMDAsImV4cCI6MTc4MDM5NDgwMH0.abc123...
+
+    ErrorResponse:
+      type: object
+      description: Respuesta de error genérica del servidor
+      properties:
+        ok:
+          type: boolean
+          enum: [false]
+        msg:
+          type: string
+          description: Mensaje descriptivo del error
+      required:
+        - ok
+        - msg
+
+    ValidationErrorResponse:
+      type: object
+      description: >
+        Respuesta de error de validación de campos.
+        Proviene del middleware `express-validator`.
+      properties:
+        ok:
+          type: boolean
+          enum: [false]
+        errors:
+          type: object
+          description: >
+            Objeto con los errores de validación, donde cada clave es el
+            nombre del campo y el valor es el detalle del error.
+          additionalProperties:
+            type: object
+            properties:
+              type:
+                type: string
+              value:
+                type: string
+                nullable: true
+              msg:
+                type: string
+              path:
+                type: string
+              location:
+                type: string
+      required:
+        - ok
+        - errors
+
+    RolErrorResponse:
+      type: object
+      description: Respuesta de error por rol insuficiente (código 403)
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        msg:
+          type: string
+          example: Acceso prohibido
+      required:
+        - ok
+        - msg
+
+    SuccessLocalSearchResponse:
+      type: object
+      description: >
+        Respuesta exitosa cuando se encuentran resultados en la base de datos
+        local durante una búsqueda por título.
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        msg:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"
+        token:
+          $ref: "#/components/schemas/JWTToken"
+
+    SuccessExternalSearchResponse:
+      type: object
+      description: >
+        Respuesta exitosa cuando no hay resultados locales y se consulta la
+        API externa de OMDB.
+      properties:
+        ok:
+          type: boolean
+          enum: [true]
+        msg:
+          type: string
+          example: Peliculas encontradas fuera
+        peliculas:
+          type: array
+          description: Resultados devueltos por la API de OMDB
+          items:
+            type: object
+        token:
+          $ref: "#/components/schemas/JWTToken"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Token JWT generado con algoritmo HS512. Se obtiene mediante
+        login o signup. Se renueva automáticamente en cada respuesta
+        de endpoints protegidos.
