@@ -40,7 +40,7 @@ src/
 │   ├── favorites/  # FavoriteButton, FavoritesList
 │   ├── admin/      # AdminMovieForm, AdminMovieTable
 │   └── common/     # Navbar, Footer, Loading, ErrorMessage
-├── hooks/          # useAuth, useMovies, useFavorites, useForm
+├── hooks/          # useAuth, useFetch, useForm
 ├── services/       # api.js, authService.js, movieService.js, adminService.js
 ├── context/        # AuthContext.jsx
 ├── pages/          # LoginPage, SignupPage, SearchPage, MoviePage, FavoritesPage, AdminPage
@@ -137,6 +137,7 @@ import './LoginPage.scss';
 - **Routing**: `react-router` (ya incluido en el stack).
 - **Estilos**: `sass` para preprocesado CSS. NO instalar frameworks CSS (Bootstrap, Tailwind, etc.).
 - **Estado global**: Solo `AuthContext` + hooks locales. NO instalar librerías de state management (Redux, Zustand, Jotai, etc.).
+- **Package manager**: npm. NO usar pnpm, yarn, bun ni otros gestores. Todos los comandos de instalación deben ejecutarse con `npm install <paquete>`.
 - **Utilidades**: NO instalar lodash, ramda u otras librerías de utilidades. Usar funciones nativas de JS.
 
 ---
@@ -240,7 +241,7 @@ API (backend)
 services/api.js        ← Capa de transporte HTTP: fetch, headers, token, 401
 services/*Service.js   ← Capa de dominio: llama a api.request() con método/endpoint/body
   ↓ datos crudos
-hooks/                 ← Capa de estado: encapsula loading/data/error, expone funciones
+hooks/ (useFetch)      ← Capa de estado: hook genérico con { data, loading, error, execute }
   ↓ props + handlers
 pages/ + components/   ← Capa de presentación: renderiza UI, llama a hooks, no llama a servicios
 ```
@@ -283,12 +284,37 @@ const MiComponente = () => {
 - Los botones de acciones (guardar, eliminar, favorito) deben mostrar estado de carga independiente mientras la operación está en curso.
 - Los errores de validación de formularios se muestran por campo, no como mensaje global.
 
+### Hook `useFetch`
+
+Hook genérico para llamadas asíncronas. Expone `{ data, loading, error, execute }`.
+
+- **`execute(serviceFn, ...args)`** — recibe una función del servicio (`movieService.search`, `movieService.getById`, etc.) y sus argumentos. Gestiona `loading` y `error` automáticamente.
+- No ejecuta nada al montarse. Es la página quien decide cuándo llamar a `execute`.
+- Cada instancia del hook es independiente. Una página puede tener varias: una para búsqueda, otra para favoritos, etc.
+
+```jsx
+const searchFetch = useFetch();
+const favoritesFetch = useFetch();
+
+const handleSearch = (title) => {
+  searchFetch.execute(movieService.search, title);
+};
+
+useEffect(() => {
+  favoritesFetch.execute(movieService.getFavorites);
+}, []);
+```
+
+Los componentes presentacionales reciben datos por props desde la página que orquesta los hooks.
+
 ---
 
 ## Fases de implementación
 
 ### Fase 0 — Setup inicial
 - `npm install react-router sass`
+- Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
+- Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
 - ✅ Verificar: `npm run dev` no da errores
 
@@ -378,8 +404,7 @@ const MiComponente = () => {
   - Llama a `addFavorite` / `removeFavorite`
 - `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
   - Lista de MovieCards filtrados por favoritos
-- `src/hooks/useMovies.js` — `searchMovies()`, estado `movies`, `loading`, `error`
-- `src/hooks/useFavorites.js` — `favorites`, `toggleFavorite()`, `isFavorite(movieId)`
+- `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
 - `src/pages/SearchPage.jsx` + `SearchPage.scss`
 - `src/pages/MoviePage.jsx` + `MoviePage.scss`
 - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
