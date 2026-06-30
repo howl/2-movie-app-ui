@@ -288,7 +288,7 @@ const MiComponente = () => {
 
 | Estado | Condición | Componente |
 |---|---|---|
-| `loading` | `loading === true` | `<Loading />` (spinner o skeleton) |
+| `loading` | `loading === true` | `<Loading />` (skeleton) |
 | `error` | `error !== null` | `<ErrorMessage message={error} />` |
 | `success` | `data` válido | Renderizado del contenido |
 | `success` (sin datos) | `!data` o array vacío | Mensaje contextual según dominio |
@@ -419,7 +419,7 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
      - Logo / nombre de la app
      - Enlaces: Home, Favorites (solo autenticado), Admin (solo admin)
      - Nombre de usuario + botón Cerrar sesión (si autenticado) / Login + Signup (si no)
-   - `src/components/common/Footer.jsx` + `Footer.scss`
+    - `src/components/common/Footer.jsx` + `Footer.scss`
     - `src/components/common/ProtectedRoute.jsx`:
       - Si `loading` → `<Loading />`
       - Si no autenticado → guarda la ruta intentada y redirige a `<Navigate to="/login" />`
@@ -441,7 +441,7 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
    - Tests para useForm.js, LoginForm.jsx, SignupForm.jsx, LoginPage.jsx, SignupPage.jsx
 2. Implementar archivos (GREEN)
     - `src/hooks/useForm.js` — hook genérico para formularios: maneja `values`, `errors`, `handleChange`, `handleSubmit`, `setErrors`. La validación se ejecuta on blur y on submit.
-   - `src/components/auth/LoginForm.jsx` + `LoginForm.scss`:
+    - `src/components/auth/LoginForm.jsx` + `LoginForm.scss`:
      - Campos: email, password
      - Botón submit: "Iniciar sesión"
      - Link a Signup
@@ -482,10 +482,10 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
     - `src/components/favorites/FavoritesList.jsx` + `FavoritesList.scss`:
       - Lista de MovieCards filtrados por favoritos
       - Key de cada MovieCard: `movie._id`
-   - `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
-   - `src/pages/SearchPage.jsx` + `SearchPage.scss`
-   - `src/pages/MoviePage.jsx` + `MoviePage.scss`
-   - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
+    - `src/hooks/useFetch.js` — hook genérico `{ data, loading, error, execute }`
+    - `src/pages/SearchPage.jsx` + `SearchPage.scss`
+    - `src/pages/MoviePage.jsx` + `MoviePage.scss`
+    - `src/pages/FavoritesPage.jsx` + `FavoritesPage.scss`
 3. Refactorizar
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
