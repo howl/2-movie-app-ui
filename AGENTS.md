@@ -352,7 +352,6 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 - Configurar `package.json` con scripts:
   - `"test": "vitest"`
   - `"test:run": "vitest run"`
-- Añadir `envPrefix: 'MOVIE_'` en `vite.config.js`
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
 - Crear `src/tests/setup.js` con `import '@testing-library/jest-dom'`
