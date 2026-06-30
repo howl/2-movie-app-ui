@@ -96,6 +96,7 @@ const API_URL = import.meta.env.MOVIE_API_URL;
 - JavaScript (ES6+ modules). NO TypeScript.
 - Named exports SIEMPRE: `export const ComponentName = () => { ... }`
 - Componentes funcionales + hooks. NUNCA clases.
+- Funciones flecha SIEMPRE. NUNCA usar `function`. Si por algún motivo de fuerza mayor fuese necesario, consultar antes de proceder.
 
 ### Nomenclatura
 - `PascalCase` → componentes, archivos `.jsx`, archivos `.scss`
