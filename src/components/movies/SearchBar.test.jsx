@@ -32,4 +32,27 @@ describe('SearchBar', () => {
 
     expect(onSearch).toHaveBeenCalledWith('');
   });
+
+  it('handles special characters in search', async () => {
+    const onSearch = vi.fn();
+    render(<SearchBar onSearch={onSearch} />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByPlaceholderText('Buscar películas...'), 'Star Wars: Episode V');
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(onSearch).toHaveBeenCalledWith('Star Wars: Episode V');
+  });
+
+  it('clears input after submit', async () => {
+    const onSearch = vi.fn();
+    render(<SearchBar onSearch={onSearch} />);
+    const user = userEvent.setup();
+    const input = screen.getByPlaceholderText('Buscar películas...');
+
+    await user.type(input, 'Test');
+    await user.click(screen.getByRole('button', { name: 'Buscar' }));
+
+    expect(input).toHaveValue('Test');
+  });
 });

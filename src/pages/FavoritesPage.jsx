@@ -16,7 +16,7 @@ export const FavoritesPage = () => {
       await movieService.removeFavorite(movieId);
       favoritesFetch.execute(movieService.getFavorites);
     } catch {
-      // already handled
+      // handled
     }
   };
 

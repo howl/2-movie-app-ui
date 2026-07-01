@@ -56,4 +56,33 @@ describe('MovieDetail', () => {
     );
     expect(screen.getByText(/A thief who steals/)).toBeInTheDocument();
   });
+
+  it('handles null image', () => {
+    const movieNullImage = { ...mockMovie, image: null };
+    render(
+      <MemoryRouter>
+        <MovieDetail movie={movieNullImage} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Sin póster')).toBeInTheDocument();
+  });
+
+  it('handles undefined genres', () => {
+    const movieNoGenres = { ...mockMovie, genres: undefined };
+    render(
+      <MemoryRouter>
+        <MovieDetail movie={movieNoGenres} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Inception')).toBeInTheDocument();
+  });
+
+  it('renders without onToggleFavorite', () => {
+    render(
+      <MemoryRouter>
+        <MovieDetail movie={mockMovie} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Inception')).toBeInTheDocument();
+  });
 });

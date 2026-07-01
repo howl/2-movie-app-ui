@@ -1,3 +1,5 @@
+import './FavoriteButton.scss';
+
 export const FavoriteButton = ({ isFavorite, onToggle }) => {
   return (
     <button

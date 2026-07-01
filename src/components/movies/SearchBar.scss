@@ -1,3 +1,5 @@
+@use '../../styles/variables' as *;
+
 .search-bar {
   display: flex;
   gap: $spacing-xs;

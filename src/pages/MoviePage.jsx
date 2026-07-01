@@ -13,8 +13,11 @@ export const MoviePage = () => {
 
   useEffect(() => {
     movieFetch.execute(movieService.getById, id);
-    favoritesFetch.execute(movieService.getFavorites);
   }, [id]);
+
+  useEffect(() => {
+    favoritesFetch.execute(movieService.getFavorites);
+  }, []);
 
   if (movieFetch.loading) return <Loading />;
   if (movieFetch.error) return <ErrorMessage message={movieFetch.error} />;
@@ -32,7 +35,7 @@ export const MoviePage = () => {
       }
       favoritesFetch.execute(movieService.getFavorites);
     } catch {
-      // already handled
+      // handled
     }
   };
 
