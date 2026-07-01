@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { authService } from '../services/authService.js';
 import { useAuth } from '../hooks/useAuth.js';
@@ -12,6 +13,7 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+  const [loading, setLoading] = useState(false);
 
   const form = useForm(
     { email: '', password: '' },
@@ -22,12 +24,15 @@ export const LoginPage = () => {
   );
 
   const handleLogin = form.handleSubmit(async () => {
+    setLoading(true);
     try {
       const response = await authService.login(form.values.email, form.values.password);
       login(response.user, response.token);
       navigate(from, { replace: true });
     } catch (error) {
       form.setErrors({ general: error.message });
+    } finally {
+      setLoading(false);
     }
   });
 
@@ -35,7 +40,7 @@ export const LoginPage = () => {
     <div className="login-page">
       <h1>Iniciar sesión</h1>
       {form.errors.general && <ErrorMessage message={form.errors.general} />}
-      <LoginForm onSubmit={handleLogin} errors={form.errors} />
+      <LoginForm onSubmit={handleLogin} errors={form.errors} loading={loading} />
     </div>
   );
 };

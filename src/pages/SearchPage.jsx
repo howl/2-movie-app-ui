@@ -2,6 +2,8 @@ import { movieService } from '../services/movieService.js';
 import { useFetch } from '../hooks/useFetch.js';
 import { SearchBar } from '../components/movies/SearchBar.jsx';
 import { MovieList } from '../components/movies/MovieList.jsx';
+import { Loading } from '../components/common/Loading.jsx';
+import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
 import './SearchPage.scss';
 
 export const SearchPage = () => {
@@ -28,8 +30,8 @@ export const SearchPage = () => {
   return (
     <div className="search-page">
       <SearchBar onSearch={handleSearch} />
-      {searchFetch.loading && <p>Cargando...</p>}
-      {searchFetch.error && <p className="error">{searchFetch.error}</p>}
+      {searchFetch.loading && <Loading />}
+      {searchFetch.error && <ErrorMessage message={searchFetch.error} />}
       <MovieList
         movies={searchFetch.data?.msg || searchFetch.data?.peliculas}
         isFavorite={isFavorite}
