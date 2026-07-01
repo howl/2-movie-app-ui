@@ -381,7 +381,19 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 
 ### Reglas de testing
 - Cada test prueba **una sola cosa** (una aserción lógica por test).
-- Probar **border cases**: arrays vacíos, null/undefined, errores HTTP, límites de caracteres, IDs inválidos.
+- Probar **border cases de forma exhaustiva**, incluyendo al menos:
+  - Valores vacíos: string vacío, array vacío, objeto vacío, FormData vacío
+  - Valores nulos/indefinidos: null, undefined, NaN
+  - Límites de caracteres: mínimo, máximo, justo por debajo, justo por encima
+  - Formatos inválidos: IDs con formato incorrecto, emails sin @, contraseñas sin números/sin letras
+  - Estados HTTP: 200, 201, 400, 401, 403, 404, 500
+  - Respuestas de API: `ok: true`, `ok: false`, `ok: false` sin msg, errores de validación con `errors`
+  - Red: timeout, fallo de red, rechazo no-Error (string), respuesta no JSON
+  - Token: nulo, vacío, caducado, inválido, renovación en cada respuesta
+  - Duplicados: email ya registrado, película ya en favoritos
+  - No existentes: ID de usuario/película que no existe en el sistema
+  - Caracteres especiales: espacios, unicode, símbolos, muy largos
+- Probar tanto el **camino feliz** (happy path) como cada **caso de error** documentado en la API.
 - Los tests E2E se ubican en `e2e/` en la raíz del proyecto.
 
 ---
