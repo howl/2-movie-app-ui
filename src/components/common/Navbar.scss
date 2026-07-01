@@ -1,0 +1,53 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-xs $spacing-md;
+  background-color: $view-bg-color;
+  border-bottom: 1px solid $border-color;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+
+  &-brand {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: $window-fg-color;
+    text-decoration: none;
+  }
+
+  &-links {
+    display: flex;
+    gap: $spacing-sm;
+  }
+
+  &-user {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-left: auto;
+  }
+
+  &-username {
+    font-weight: bold;
+  }
+
+  a, button {
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-md;
+    font-size: $font-size-base;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  a {
+    color: $accent-color;
+    &:hover { text-decoration: underline; }
+  }
+
+  button {
+    background-color: transparent;
+    border: 1px solid $border-color;
+    color: $window-fg-color;
+    &:hover { background-color: $shade-color; }
+  }
+}

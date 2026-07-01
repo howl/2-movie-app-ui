@@ -1,0 +1,25 @@
+.error-message {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-md;
+  border: 1px solid;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-sm;
+
+  &.error {
+    background-color: rgba($error-color, 0.1);
+    border-color: $error-color;
+    color: $error-color;
+  }
+
+  &.warning {
+    background-color: rgba($warning-color, 0.1);
+    border-color: $warning-color;
+    color: $warning-color;
+  }
+
+  &.info {
+    background-color: rgba($accent-color, 0.1);
+    border-color: $accent-color;
+    color: $accent-color;
+  }
+}

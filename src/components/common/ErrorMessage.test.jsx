@@ -1,4 +1,4 @@
-import { render, cleanup } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, afterEach } from 'vitest';
 import { ErrorMessage } from './ErrorMessage.jsx';
 
@@ -28,5 +28,20 @@ describe('ErrorMessage', () => {
   it('renders empty message without crashing', () => {
     const { container } = render(<ErrorMessage message="" />);
     expect(container.querySelector('.error-message')).toBeInTheDocument();
+  });
+
+  it('renders null message without crashing', () => {
+    const { container } = render(<ErrorMessage message={null} />);
+    expect(container.querySelector('.error-message')).toBeInTheDocument();
+  });
+
+  it('renders undefined type without crashing', () => {
+    const { container } = render(<ErrorMessage message="Test" type={undefined} />);
+    expect(container.querySelector('.error-message')).toBeInTheDocument();
+  });
+
+  it('has role alert for accessibility', () => {
+    render(<ErrorMessage message="Error" />);
+    expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 });
