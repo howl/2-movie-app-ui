@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import './LoginForm.scss';
 
 export const LoginForm = ({ onSubmit, errors: formErrors, loading }) => {
   const errors = formErrors || {};
