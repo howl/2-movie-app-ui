@@ -142,6 +142,7 @@ import './LoginPage.scss';
 - Mixins reutilizables en `styles/_mixins.scss`
 - Metodología BEM o anidamiento moderado, sin mezclar ambos enfoques en un mismo archivo (máximo 3 niveles de profundidad)
 - Diseño responsive con enfoque mobile-first
+- Sistema de diseño basado en Adwaita (ver `@contexts/ADWAITA_UI.md`)
 
 ### Extensiones en imports
 - Incluir SIEMPRE la extensión del archivo en imports: `.js`, `.jsx`, `.scss`.

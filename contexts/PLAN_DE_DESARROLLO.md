@@ -91,10 +91,11 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
     - `src/components/common/ErrorMessage.jsx` + `ErrorMessage.scss`
       — Componente universal de error. Acepta `message` (string) y opcionalmente
       `type` (error, warning, info). Se usa en todas las páginas.
-    - `src/styles/_variables.scss` — colores, fuentes, breakpoints mobile-first:
-      $breakpoint-sm: 576px, $breakpoint-md: 768px, $breakpoint-lg: 992px,
-      $breakpoint-xl: 1200px
-    - `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `flex-center`, etc.
+    - `src/styles/_variables.scss` — colores, fuentes, breakpoints mobile-first
+      (ver `@contexts/ADWAITA_UI.md` para valores exactos de paleta,
+      tipografía y radios)
+    - `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `dark-mode`,
+      `flex-center`, etc.
     - `src/index.scss` — reset, imports de variables y mixins, estilos base
     - `src/App.scss` — layout general (min-height 100vh, sticky footer)
     - Modificar `src/App.jsx`:
