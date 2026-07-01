@@ -8,6 +8,7 @@ import { SignupPage } from './pages/SignupPage.jsx';
 import { SearchPage } from './pages/SearchPage.jsx';
 import { MoviePage } from './pages/MoviePage.jsx';
 import { FavoritesPage } from './pages/FavoritesPage.jsx';
+import { AdminPage } from './pages/AdminPage.jsx';
 import './App.scss';
 
 export const App = () => {
@@ -23,6 +24,9 @@ export const App = () => {
               <Route path="/" element={<SearchPage />} />
               <Route path="/movies/:id" element={<MoviePage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
+            </Route>
+            <Route element={<ProtectedRoute requiredRole="admin" />}>
+              <Route path="/admin/movies" element={<AdminPage />} />
             </Route>
           </Routes>
         </main>

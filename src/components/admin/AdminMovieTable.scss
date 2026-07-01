@@ -1,0 +1,39 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: $spacing-sm;
+
+  th, td {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $border-color;
+  }
+
+  th {
+    font-weight: bold;
+    font-size: $font-size-base;
+  }
+
+  button {
+    margin-right: $spacing-xs;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-md;
+    border: 1px solid $border-color;
+    background: transparent;
+    cursor: pointer;
+    font-size: $font-size-base;
+
+    &:hover {
+      background-color: $shade-color;
+    }
+  }
+
+  &-empty {
+    color: $border-color;
+    font-size: $font-size-base;
+    padding: $spacing-md 0;
+  }
+}

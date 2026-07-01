@@ -5,6 +5,14 @@ Todas las versiones notables de Movie App UI se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/),
 y versionado con [SemVer](https://semver.org/).
 
+## [0.6.0] — 2026-07-01
+
+### Añadido
+- Páginas de administración: AdminMovieTable, AdminMovieForm, AdminPage
+- CRUD completo de películas con multipart/form-data e imagen
+- Ruta `/admin/movies` protegida con rol admin
+- Tests unitarios para componentes admin (271 tests total)
+
 ## [0.5.0] — 2026-07-01
 
 ### Añadido

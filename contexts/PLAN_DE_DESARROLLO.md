@@ -168,24 +168,17 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 
 ---
 
-## Fase 6 — Páginas de administración
-1. Escribir tests (RED)
-   - Tests para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
-   - Tests de integración: crear película → listar → editar → eliminar
-   - Tests E2E: CRUD completo de película como administrador
-2. Implementar archivos (GREEN)
-    - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
-      - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
-      - Confirmación antes de eliminar (modal o confirm nativo)
-    - `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss`:
-      - Formulario completo de película (todos los campos del modelo Movie)
-      - Manejo de `multipart/form-data` para subida de imagen
-      - Modo crear / modo editar
-      - Tras guardar, mostrar mensaje de éxito y permanecer en la misma vista
-    - `src/pages/AdminPage.jsx` + `AdminPage.scss`:
-      - Alterna entre tabla y formulario (crear/editar)
-    - Conectar con `adminService`
-3. Refactorizar
+## Fase 6 — Páginas de administración ✅
+1. Escribir tests (RED) ✅
+   - Tests para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx ✅
+   - Tests de integración: crear película → listar → editar → eliminar ✅
+   - Tests E2E: CRUD completo de película como administrador ✅
+2. Implementar archivos (GREEN) ✅
+   - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss` ✅
+   - `src/components/admin/AdminMovieForm.jsx` + `AdminMovieForm.scss` ✅
+   - `src/pages/AdminPage.jsx` + `AdminPage.scss` ✅
+   - Conectar con `adminService` ✅
+3. Refactorizar ✅
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
 
 ---
