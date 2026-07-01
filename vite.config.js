@@ -8,4 +8,9 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  envPrefix: 'MOVIE_',
+  test: {
+    setupFiles: ['./src/tests/setup.js'],
+    environment: 'jsdom',
+  },
 })
