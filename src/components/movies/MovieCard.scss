@@ -1,0 +1,25 @@
+.movie-card {
+  @include card;
+  position: relative;
+
+  &-poster {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: $radius-md;
+  }
+
+  &-placeholder {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    @include flex-center;
+    background-color: $shade-color;
+    border-radius: $radius-md;
+    color: $window-fg-color;
+    font-size: 0.9em;
+  }
+
+  &-info {
+    padding: $spacing-xs 0;
+  }
+}

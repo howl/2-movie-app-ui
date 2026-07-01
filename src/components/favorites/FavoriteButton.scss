@@ -1,0 +1,11 @@
+.favorite-button {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  padding: $spacing-xs;
+
+  &--active {
+    color: $error-color;
+  }
+}
