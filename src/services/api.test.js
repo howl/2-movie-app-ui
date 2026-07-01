@@ -112,6 +112,26 @@ describe('api.request', () => {
     expect(removeToken).not.toHaveBeenCalled();
   });
 
+  it('handles 400 (bad request) errors', async () => {
+    getToken.mockReturnValue(FAKE_TOKEN);
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      status: 400,
+      json: () => Promise.resolve({ ok: false, msg: 'Validation failed' }),
+    });
+
+    await expect(api.request('/test')).rejects.toThrow('Validation failed');
+  });
+
+  it('handles 404 (not found) errors', async () => {
+    getToken.mockReturnValue(FAKE_TOKEN);
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      status: 404,
+      json: () => Promise.resolve({ ok: false, msg: 'Not found' }),
+    });
+
+    await expect(api.request('/test')).rejects.toThrow('Not found');
+  });
+
   it('handles 403 (forbidden) without throwing (body.ok is true)', async () => {
     getToken.mockReturnValue(FAKE_TOKEN);
     globalThis.fetch = vi.fn().mockResolvedValue({
