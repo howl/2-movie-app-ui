@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import './SignupForm.scss';
 
 export const SignupForm = ({ onSubmit, errors: formErrors, loading }) => {
   const errors = formErrors || {};
