@@ -1,0 +1,6 @@
+.login-form,
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
