@@ -1,10 +1,11 @@
-import { useParams } from 'react-router';
 import { useEffect } from 'react';
+import { useParams } from 'react-router';
+import { movieService } from '../services/movieService.js';
+import { useFetch } from '../hooks/useFetch.js';
 import { MovieDetail } from '../components/movies/MovieDetail.jsx';
 import { Loading } from '../components/common/Loading.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
-import { useFetch } from '../hooks/useFetch.js';
-import { movieService } from '../services/movieService.js';
+import './MoviePage.scss';
 
 export const MoviePage = () => {
   const { id } = useParams();

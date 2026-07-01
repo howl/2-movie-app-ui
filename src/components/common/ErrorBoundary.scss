@@ -1,0 +1,7 @@
+@use '../../styles/variables' as *;
+
+.error-boundary {
+  padding: 2rem;
+  text-align: center;
+  color: $window-fg-color;
+}

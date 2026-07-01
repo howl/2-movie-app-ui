@@ -1,7 +1,8 @@
+import { movieService } from '../services/movieService.js';
+import { useFetch } from '../hooks/useFetch.js';
 import { SearchBar } from '../components/movies/SearchBar.jsx';
 import { MovieList } from '../components/movies/MovieList.jsx';
-import { useFetch } from '../hooks/useFetch.js';
-import { movieService } from '../services/movieService.js';
+import './SearchPage.scss';
 
 export const SearchPage = () => {
   const searchFetch = useFetch();

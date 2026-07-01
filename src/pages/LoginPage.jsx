@@ -1,10 +1,11 @@
 import { useNavigate, useLocation } from 'react-router';
-import { useAuth } from '../hooks/useAuth.js';
-import { LoginForm } from '../components/auth/LoginForm.jsx';
 import { authService } from '../services/authService.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { useForm } from '../hooks/useForm.js';
 import { isValidEmail, isRequired } from '../utils/validators.js';
+import { LoginForm } from '../components/auth/LoginForm.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
+import './LoginPage.scss';
 
 export const LoginPage = () => {
   const { login } = useAuth();

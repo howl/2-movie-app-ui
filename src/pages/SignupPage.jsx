@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router';
-import { useAuth } from '../hooks/useAuth.js';
-import { SignupForm } from '../components/auth/SignupForm.jsx';
 import { authService } from '../services/authService.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { useForm } from '../hooks/useForm.js';
 import { isValidEmail, isValidPassword, isRequired } from '../utils/validators.js';
+import { SignupForm } from '../components/auth/SignupForm.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
+import './SignupPage.scss';
 
 export const SignupPage = () => {
   const { login } = useAuth();

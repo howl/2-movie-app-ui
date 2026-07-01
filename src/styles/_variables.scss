@@ -1,7 +1,10 @@
+// Tipografía
 $font-family-sans: 'Adwaita Sans', 'Inter', system-ui, sans-serif;
 $font-family-mono: 'Adwaita Mono', 'Iosevka', 'Source Code Pro', monospace;
 $font-size-base: 11px;
 
+// Colores funcionales (modo claro) - usados como valores por defecto
+// Los componentes DEBEN usar estas variables Sass, no colores hardcodeados
 $window-bg-color: #fafaf9;
 $window-fg-color: #2e3436;
 $view-bg-color: #ffffff;
@@ -11,18 +14,29 @@ $accent-fg-color: #ffffff;
 $border-color: rgba(#2e3436, 0.15);
 $shade-color: rgba(#2e3436, 0.07);
 
+$card-bg-color: #ffffff;
+$card-fg-color: #2e3436;
+$headerbar-bg-color: #ebebea;
+$headerbar-fg-color: #2e3436;
+
 $success-color: #3a944a;
 $warning-color: #c88800;
 $error-color: #e62d42;
 
+$dim-opacity: 0.55;
+$disabled-opacity: 0.5;
+
+// Radios
 $radius-sm: 4px;
 $radius-md: 6px;
 $radius-lg: 9px;
 
+// Espaciado
 $spacing-xs: 6px;
 $spacing-sm: 12px;
 $spacing-md: 24px;
 
+// Breakpoints mobile-first
 $breakpoint-sm: 576px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 992px;

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
+import { movieService } from '../services/movieService.js';
+import { useFetch } from '../hooks/useFetch.js';
 import { FavoritesList } from '../components/favorites/FavoritesList.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
-import { useFetch } from '../hooks/useFetch.js';
-import { movieService } from '../services/movieService.js';
+import './FavoritesPage.scss';
 
 export const FavoritesPage = () => {
   const favoritesFetch = useFetch();
