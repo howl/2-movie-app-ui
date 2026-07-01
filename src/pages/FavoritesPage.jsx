@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
-import { FavoritesList } from '../components/favorites/FavoritesList.jsx';
-import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
-import { useFetch } from '../hooks/useFetch.js';
 import { movieService } from '../services/movieService.js';
+import { useFetch } from '../hooks/useFetch.js';
+import { FavoritesList } from '../components/favorites/FavoritesList.jsx';
+import { Loading } from '../components/common/Loading.jsx';
+import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
+import './FavoritesPage.scss';
 
 export const FavoritesPage = () => {
   const favoritesFetch = useFetch();
@@ -12,15 +14,11 @@ export const FavoritesPage = () => {
   }, []);
 
   const handleRemoveFavorite = async (movieId) => {
-    try {
-      await movieService.removeFavorite(movieId);
-      favoritesFetch.execute(movieService.getFavorites);
-    } catch {
-      // already handled
-    }
+    await movieService.removeFavorite(movieId);
+    favoritesFetch.execute(movieService.getFavorites);
   };
 
-  if (favoritesFetch.loading) return <p>Cargando...</p>;
+  if (favoritesFetch.loading) return <Loading />;
   if (favoritesFetch.error) return <ErrorMessage message={favoritesFetch.error} />;
 
   return (

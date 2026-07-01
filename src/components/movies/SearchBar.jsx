@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import './SearchBar.scss';
 
 export const SearchBar = ({ onSearch }) => {
   const [term, setTerm] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSearch(term);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearch(term);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [term, onSearch]);
 
   return (
-    <form className="search-bar" onSubmit={handleSubmit}>
+    <form className="search-bar" onSubmit={(e) => e.preventDefault()}>
       <input
         type="text"
         placeholder="Buscar películas..."

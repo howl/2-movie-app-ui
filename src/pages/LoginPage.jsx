@@ -1,16 +1,19 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { useAuth } from '../hooks/useAuth.js';
-import { LoginForm } from '../components/auth/LoginForm.jsx';
 import { authService } from '../services/authService.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { useForm } from '../hooks/useForm.js';
 import { isValidEmail, isRequired } from '../utils/validators.js';
+import { LoginForm } from '../components/auth/LoginForm.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
+import './LoginPage.scss';
 
 export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/';
+  const [loading, setLoading] = useState(false);
 
   const form = useForm(
     { email: '', password: '' },
@@ -21,12 +24,15 @@ export const LoginPage = () => {
   );
 
   const handleLogin = form.handleSubmit(async () => {
+    setLoading(true);
     try {
       const response = await authService.login(form.values.email, form.values.password);
       login(response.user, response.token);
       navigate(from, { replace: true });
     } catch (error) {
       form.setErrors({ general: error.message });
+    } finally {
+      setLoading(false);
     }
   });
 
@@ -34,7 +40,7 @@ export const LoginPage = () => {
     <div className="login-page">
       <h1>Iniciar sesión</h1>
       {form.errors.general && <ErrorMessage message={form.errors.general} />}
-      <LoginForm onSubmit={handleLogin} errors={form.errors} />
+      <LoginForm onSubmit={handleLogin} errors={form.errors} loading={loading} />
     </div>
   );
 };

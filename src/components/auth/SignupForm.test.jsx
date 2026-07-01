@@ -55,4 +55,16 @@ describe('SignupForm', () => {
     renderSignupForm({ errors: { name: 'Name is required' } });
     expect(screen.getByText('Name is required')).toBeInTheDocument();
   });
+
+  it('renders multiple field errors', () => {
+    renderSignupForm({ errors: { name: 'Name required', email: 'Email required', password: 'Password required' } });
+    expect(screen.getByText('Name required')).toBeInTheDocument();
+    expect(screen.getByText('Email required')).toBeInTheDocument();
+    expect(screen.getByText('Password required')).toBeInTheDocument();
+  });
+
+  it('renders with no errors prop', () => {
+    renderSignupForm({ errors: undefined });
+    expect(screen.getByRole('button', { name: 'Crear cuenta' })).toBeInTheDocument();
+  });
 });

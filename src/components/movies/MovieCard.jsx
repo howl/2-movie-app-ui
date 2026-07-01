@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { FavoriteButton } from '../favorites/FavoriteButton.jsx';
+import './MovieCard.scss';
 
 export const MovieCard = ({ movie, isFavorite, onToggleFavorite }) => {
   return (

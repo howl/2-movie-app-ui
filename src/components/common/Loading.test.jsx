@@ -7,4 +7,9 @@ describe('Loading', () => {
     const { container } = render(<Loading />);
     expect(container.querySelector('.skeleton')).toBeInTheDocument();
   });
+
+  it('has aria-label for accessibility', () => {
+    const { container } = render(<Loading />);
+    expect(container.querySelector('[aria-label="Loading"]')).toBeInTheDocument();
+  });
 });

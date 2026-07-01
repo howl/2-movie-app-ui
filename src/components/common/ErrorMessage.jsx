@@ -1,3 +1,5 @@
+import './ErrorMessage.scss';
+
 export const ErrorMessage = ({ message, type = 'error' }) => {
   return (
     <div className={`error-message ${type}`} role="alert">

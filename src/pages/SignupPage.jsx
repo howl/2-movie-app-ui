@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../hooks/useAuth.js';
-import { SignupForm } from '../components/auth/SignupForm.jsx';
 import { authService } from '../services/authService.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { useForm } from '../hooks/useForm.js';
 import { isValidEmail, isValidPassword, isRequired } from '../utils/validators.js';
+import { SignupForm } from '../components/auth/SignupForm.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
+import './SignupPage.scss';
 
 export const SignupPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm(
     { name: '', email: '', password: '' },
@@ -20,12 +23,15 @@ export const SignupPage = () => {
   );
 
   const handleSignup = form.handleSubmit(async () => {
+    setLoading(true);
     try {
       const response = await authService.signup(form.values.name, form.values.email, form.values.password);
       login(response.user, response.token);
       navigate('/', { replace: true });
     } catch (error) {
       form.setErrors({ general: error.message });
+    } finally {
+      setLoading(false);
     }
   });
 
@@ -33,7 +39,7 @@ export const SignupPage = () => {
     <div className="signup-page">
       <h1>Crear cuenta</h1>
       {form.errors.general && <ErrorMessage message={form.errors.general} />}
-      <SignupForm onSubmit={handleSignup} errors={form.errors} />
+      <SignupForm onSubmit={handleSignup} errors={form.errors} loading={loading} />
     </div>
   );
 };

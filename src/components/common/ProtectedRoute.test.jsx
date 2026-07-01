@@ -12,6 +12,9 @@ const renderWithAuth = (authValue, initialRoute = '/') => {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<p>Protected content</p>} />
           </Route>
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/admin" element={<p>Admin content</p>} />
+          </Route>
           <Route path="/login" element={<p>Login page</p>} />
         </Routes>
       </MemoryRouter>
@@ -32,8 +35,13 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Login page')).toBeInTheDocument();
   });
 
-  it('renders children when requiredRole is admin and user is admin', () => {
-    renderWithAuth({ user: { name: 'admin1', rol: 'admin' }, token: 'admin', isAuthenticated: true, isAdmin: true, login: vi.fn(), logout: vi.fn() }, '/');
+  it('renders admin content when requiredRole is admin and user is admin', () => {
+    renderWithAuth({ user: { name: 'admin1', rol: 'admin' }, token: 'admin', isAuthenticated: true, isAdmin: true, login: vi.fn(), logout: vi.fn() }, '/admin');
+    expect(screen.getByText('Admin content')).toBeInTheDocument();
+  });
+
+  it('redirects non-admin user from admin route to home', () => {
+    renderWithAuth({ user: { name: 'user1', rol: 'user' }, token: 't', isAuthenticated: true, isAdmin: false, login: vi.fn(), logout: vi.fn() }, '/admin');
     expect(screen.getByText('Protected content')).toBeInTheDocument();
   });
 });

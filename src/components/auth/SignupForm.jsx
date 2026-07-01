@@ -1,6 +1,8 @@
 import { Link } from 'react-router';
 
-export const SignupForm = ({ onSubmit, errors, loading }) => {
+export const SignupForm = ({ onSubmit, errors: formErrors, loading }) => {
+  const errors = formErrors || {};
+
   return (
     <form className="signup-form" onSubmit={onSubmit}>
       <label>

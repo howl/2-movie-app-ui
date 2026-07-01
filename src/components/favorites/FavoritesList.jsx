@@ -1,4 +1,5 @@
 import { MovieCard } from '../movies/MovieCard.jsx';
+import './FavoritesList.scss';
 
 export const FavoritesList = ({ movies, onToggleFavorite }) => {
   if (!movies || movies.length === 0) {

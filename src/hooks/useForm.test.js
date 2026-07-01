@@ -95,4 +95,30 @@ describe('useForm', () => {
 
     expect(result.current.errors.email).toBe('Already taken');
   });
+
+  it('handles undefined initialValues', () => {
+    const { result } = renderHook(() => useForm(undefined, validators));
+
+    expect(result.current.values).toBeUndefined();
+  });
+
+  it('handles handleChange with no target gracefully', () => {
+    const { result } = renderHook(() => useForm({ email: '' }, validators));
+
+    act(() => {
+      result.current.handleChange({});
+    });
+
+    expect(result.current.values.email).toBe('');
+  });
+
+  it('validates with null validators', () => {
+    const { result } = renderHook(() => useForm({ email: 'test' }, null));
+
+    act(() => {
+      result.current.handleBlur({ target: { name: 'email', value: 'test' } });
+    });
+
+    expect(result.current.errors).toEqual({});
+  });
 });

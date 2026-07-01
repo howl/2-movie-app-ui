@@ -1,6 +1,35 @@
 @use 'styles/variables' as *;
 @use 'styles/mixins' as *;
 
+:root {
+  --window-bg-color: #fafaf9;
+  --window-fg-color: #2e3436;
+  --view-bg-color: #ffffff;
+  --view-fg-color: #2e3436;
+  --accent-color: #3584e4;
+  --card-bg-color: #ffffff;
+  --card-fg-color: #2e3436;
+  --headerbar-bg-color: #ebebea;
+  --headerbar-fg-color: #2e3436;
+  --border-color: rgba(46, 52, 54, 0.15);
+  --shade-color: rgba(46, 52, 54, 0.07);
+}
+
+@include dark-mode {
+  :root {
+    --window-bg-color: #1e1e1e;
+    --window-fg-color: #f6f5f4;
+    --view-bg-color: #2a2a2a;
+    --view-fg-color: #f6f5f4;
+    --card-bg-color: #333333;
+    --card-fg-color: #f6f5f4;
+    --headerbar-bg-color: #242424;
+    --headerbar-fg-color: #f6f5f4;
+    --border-color: rgba(255, 255, 255, 0.15);
+    --shade-color: rgba(255, 255, 255, 0.07);
+  }
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -34,3 +63,12 @@ a {
     text-decoration: underline;
   }
 }
+
+.title-1 { font-size: 24px; font-weight: bold; }
+.title-2 { font-size: 20px; font-weight: bold; }
+.title-3 { font-size: 16px; font-weight: bold; }
+.title-4 { font-size: 14px; font-weight: bold; }
+.heading { font-size: 11px; font-weight: bold; }
+.body { font-size: 11px; }
+.caption { font-size: 9px; }
+.monospace { font-family: $font-family-mono; }

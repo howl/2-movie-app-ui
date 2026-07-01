@@ -62,4 +62,45 @@ describe('MovieCard', () => {
     );
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
+
+  it('renders with null image', () => {
+    const movieWithNullImage = { ...mockMovie, image: null };
+    render(
+      <MemoryRouter>
+        <MovieCard movie={movieWithNullImage} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Sin póster')).toBeInTheDocument();
+  });
+
+  it('renders with undefined genres', () => {
+    const movieNoGenres = { ...mockMovie, genres: undefined };
+    render(
+      <MemoryRouter>
+        <MovieCard movie={movieNoGenres} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('The Matrix')).toBeInTheDocument();
+  });
+
+  it('renders with very long title', () => {
+    const longTitle = 'A'.repeat(200);
+    const movieLongTitle = { ...mockMovie, title: longTitle };
+    render(
+      <MemoryRouter>
+        <MovieCard movie={movieLongTitle} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(longTitle)).toBeInTheDocument();
+  });
+
+  it('renders with empty genres array', () => {
+    const movieEmptyGenres = { ...mockMovie, genres: [] };
+    render(
+      <MemoryRouter>
+        <MovieCard movie={movieEmptyGenres} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('The Matrix')).toBeInTheDocument();
+  });
 });

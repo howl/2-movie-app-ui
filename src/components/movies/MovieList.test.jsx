@@ -30,12 +30,31 @@ describe('MovieList', () => {
     expect(screen.getByText('No se encontraron películas')).toBeInTheDocument();
   });
 
-  it('renders nothing when movies is null', () => {
+  it('shows empty message when movies is null', () => {
     render(
       <MemoryRouter>
         <MovieList movies={null} />
       </MemoryRouter>,
     );
     expect(screen.getByText('No se encontraron películas')).toBeInTheDocument();
+  });
+
+  it('shows empty message when movies is undefined', () => {
+    render(
+      <MemoryRouter>
+        <MovieList movies={undefined} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('No se encontraron películas')).toBeInTheDocument();
+  });
+
+  it('renders single movie', () => {
+    render(
+      <MemoryRouter>
+        <MovieList movies={[movies[0]]} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Movie A')).toBeInTheDocument();
+    expect(screen.queryByText('Movie B')).not.toBeInTheDocument();
   });
 });

@@ -5,18 +5,21 @@ export const useForm = (initialValues, validators) => {
   const [errors, setErrors] = useState({});
 
   const validateField = useCallback((name, value) => {
-    if (validators[name]) {
+    if (validators && validators[name]) {
       return validators[name](value);
     }
     return null;
   }, [validators]);
 
   const handleChange = useCallback((e) => {
+    if (!e || !e.target) return;
     const { name, value } = e.target;
+    if (!name) return;
     setValues((prev) => ({ ...prev, [name]: value }));
   }, []);
 
   const handleBlur = useCallback((e) => {
+    if (!e || !e.target) return;
     const { name, value } = e.target;
     const error = validateField(name, value);
     setErrors((prev) => {
@@ -32,6 +35,7 @@ export const useForm = (initialValues, validators) => {
 
   const validateAll = useCallback(() => {
     const newErrors = {};
+    if (!validators) return true;
     for (const name of Object.keys(validators)) {
       const error = validators[name](values[name]);
       if (error) {

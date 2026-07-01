@@ -60,4 +60,14 @@ describe('storage', () => {
     setToken(longToken);
     expect(getToken()).toBe(longToken);
   });
+
+  it('stores numeric token as string', () => {
+    setToken('12345');
+    expect(getToken()).toBe('12345');
+  });
+
+  it('stores token with unicode characters', () => {
+    setToken('token-ñ-ü-日本語');
+    expect(getToken()).toBe('token-ñ-ü-日本語');
+  });
 });

@@ -1,4 +1,5 @@
 import { FavoriteButton } from '../favorites/FavoriteButton.jsx';
+import './MovieDetail.scss';
 
 export const MovieDetail = ({ movie, isFavorite, onToggleFavorite }) => {
   return (

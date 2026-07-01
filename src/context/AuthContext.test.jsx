@@ -148,4 +148,46 @@ describe('AuthContext', () => {
     act(() => { result.current.login({ name: 'u2' }, 't2'); });
     expect(result.current.isAuthenticated).toBe(true);
   });
+
+  it('isAdmin returns false when user rol is null', () => {
+    mockGetToken.mockReturnValue(null);
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    act(() => { result.current.login({ name: 'admin1', rol: null }, 't'); });
+
+    expect(result.current.isAdmin).toBe(false);
+  });
+
+  it('isAdmin returns false when user has no rol property', () => {
+    mockGetToken.mockReturnValue(null);
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    act(() => { result.current.login({ name: 'user1' }, 't'); });
+
+    expect(result.current.isAdmin).toBe(false);
+  });
+
+  it('handles login with empty user object', () => {
+    mockGetToken.mockReturnValue(null);
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    act(() => { result.current.login({}, 'some-token'); });
+
+    expect(result.current.user).toEqual({});
+    expect(result.current.token).toBe('some-token');
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('handles multiple rapid logins', () => {
+    mockGetToken.mockReturnValue(null);
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    act(() => { result.current.login({ name: 'a' }, 't1'); });
+    act(() => { result.current.login({ name: 'b' }, 't2'); });
+    act(() => { result.current.login({ name: 'c' }, 't3'); });
+
+    expect(result.current.user.name).toBe('c');
+    expect(result.current.token).toBe('t3');
+    expect(mockSetToken).toHaveBeenCalledTimes(3);
+  });
 });
