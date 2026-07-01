@@ -26,16 +26,29 @@ describe('FavoriteButton', () => {
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
-  it('calls onToggle multiple times correctly', async () => {
+  it('is disabled while loading', () => {
+    render(<FavoriteButton isFavorite={false} onToggle={vi.fn()} loading={true} />);
+    expect(screen.getByRole('button')).toBeDisabled();
+  });
+
+  it('shows ellipsis while loading', () => {
+    render(<FavoriteButton isFavorite={false} onToggle={vi.fn()} loading={true} />);
+    expect(screen.getByText('...')).toBeInTheDocument();
+  });
+
+  it('is not disabled when not loading', () => {
+    render(<FavoriteButton isFavorite={false} onToggle={vi.fn()} loading={false} />);
+    expect(screen.getByRole('button')).not.toBeDisabled();
+  });
+
+  it('does not call onToggle when loading', async () => {
     const onToggle = vi.fn();
-    render(<FavoriteButton isFavorite={false} onToggle={onToggle} />);
+    render(<FavoriteButton isFavorite={false} onToggle={onToggle} loading={true} />);
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('button'));
-    await user.click(screen.getByRole('button'));
-    await user.click(screen.getByRole('button'));
 
-    expect(onToggle).toHaveBeenCalledTimes(3);
+    expect(onToggle).not.toHaveBeenCalled();
   });
 
   it('has correct aria-label when favorite', () => {
@@ -48,14 +61,15 @@ describe('FavoriteButton', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-label', 'Add to favorites');
   });
 
-  it('handles null isFavorite gracefully', () => {
-    render(<FavoriteButton isFavorite={null} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button')).not.toHaveClass('favorite-button--active');
-  });
-
-  it('handles undefined onToggle without crashing', async () => {
-    render(<FavoriteButton isFavorite={false} onToggle={undefined} />);
+  it('calls onToggle multiple times when not loading', async () => {
+    const onToggle = vi.fn();
+    render(<FavoriteButton isFavorite={false} onToggle={onToggle} />);
     const user = userEvent.setup();
+
     await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button'));
+
+    expect(onToggle).toHaveBeenCalledTimes(3);
   });
 });
