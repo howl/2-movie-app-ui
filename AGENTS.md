@@ -160,6 +160,8 @@ import './LoginPage.scss';
 
 ### Otras reglas
 - NO generar comentarios en el código
+- No obstante, si fuese necesario añadir comentarios, deben estar en inglés
+- Los nombres de variables, funciones, parámetros y archivos deben estar en inglés
 - NO usar `@ts-expect-error`, `@ts-ignore` (no hay TypeScript)
 - NO dejar `console.log` en código de producción
 
@@ -427,7 +429,7 @@ Carga ese archivo cuando vayas a comenzar una fase. Las fases son:
   - `test`: añadir o modificar tests
   - `chore`: cambios en build, dependencias, configuración
   - `perf`: mejora de rendimiento
-  - Ejemplos: `feat: añadir servicio de autenticación`, `refactor: extraer useForm hook`, `fix: redirigir al login tras 401`
+  - Ejemplos: `feat: add authentication service`, `refactor: extract useForm hook`, `fix: redirect to login after 401`
 - Commits atómicos: uno por fase o por componente significativo
 - NO hacer push a menos que se solicite explícitamente
 - Versionado semántico (SemVer): `MAJOR.MINOR.PATCH`
