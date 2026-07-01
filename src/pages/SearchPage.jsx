@@ -15,12 +15,8 @@ export const SearchPage = () => {
   };
 
   const handleToggleFavorite = async (movieId) => {
-    try {
-      await movieService.addFavorite(movieId);
-      favoritesFetch.execute(movieService.getFavorites);
-    } catch {
-      // already handled
-    }
+    await movieService.addFavorite(movieId);
+    favoritesFetch.execute(movieService.getFavorites);
   };
 
   const isFavorite = (movieId) => {

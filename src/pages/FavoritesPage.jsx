@@ -14,12 +14,8 @@ export const FavoritesPage = () => {
   }, []);
 
   const handleRemoveFavorite = async (movieId) => {
-    try {
-      await movieService.removeFavorite(movieId);
-      favoritesFetch.execute(movieService.getFavorites);
-    } catch {
-      // handled
-    }
+    await movieService.removeFavorite(movieId);
+    favoritesFetch.execute(movieService.getFavorites);
   };
 
   if (favoritesFetch.loading) return <Loading />;

@@ -28,16 +28,12 @@ export const MoviePage = () => {
   const isFavorite = favoritesFetch.data?.msg?.some((fav) => fav._id === id);
 
   const handleToggleFavorite = async () => {
-    try {
-      if (isFavorite) {
-        await movieService.removeFavorite(id);
-      } else {
-        await movieService.addFavorite(id);
-      }
-      favoritesFetch.execute(movieService.getFavorites);
-    } catch {
-      // handled
+    if (isFavorite) {
+      await movieService.removeFavorite(id);
+    } else {
+      await movieService.addFavorite(id);
     }
+    favoritesFetch.execute(movieService.getFavorites);
   };
 
   return (
