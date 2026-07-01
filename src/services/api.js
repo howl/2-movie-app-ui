@@ -29,7 +29,8 @@ const request = async (endpoint, options = {}) => {
   try {
     response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
   } catch (error) {
-    throw new Error(error.message, { cause: error });
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(message || 'Request failed', { cause: error });
   }
 
   const body = await response.json();
