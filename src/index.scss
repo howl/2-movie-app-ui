@@ -1,0 +1,36 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  color: $window-fg-color;
+  background-color: $window-bg-color;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: $accent-color;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
