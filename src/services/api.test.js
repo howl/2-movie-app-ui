@@ -86,8 +86,11 @@ describe('api.request', () => {
       json: () => Promise.resolve({ ok: false, msg: 'Unauthorized' }),
     });
 
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
     await expect(api.request('/test')).rejects.toThrow('Unauthorized');
     expect(removeToken).toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Event));
   });
 
   it('throws generic error on 401 without msg', async () => {
@@ -97,8 +100,11 @@ describe('api.request', () => {
       json: () => Promise.resolve({ ok: false }),
     });
 
+    const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+
     await expect(api.request('/test')).rejects.toThrow('Unauthorized');
     expect(removeToken).toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Event));
   });
 
   it('throws error on 500 without removing token', async () => {

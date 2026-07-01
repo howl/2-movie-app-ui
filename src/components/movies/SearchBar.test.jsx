@@ -54,4 +54,13 @@ describe('SearchBar', () => {
       expect(onSearch).toHaveBeenCalledWith('Star Wars: Episode V');
     }, { timeout: 1000 });
   });
+
+  it('does not call onSearch on mount with empty term', async () => {
+    const onSearch = vi.fn();
+    render(<SearchBar onSearch={onSearch} />);
+
+    await waitFor(() => {
+      expect(onSearch).not.toHaveBeenCalled();
+    }, { timeout: 1000 });
+  });
 });

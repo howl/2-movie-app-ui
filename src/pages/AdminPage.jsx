@@ -57,6 +57,15 @@ export const AdminPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (!success && !formError) return;
+    const timer = setTimeout(() => {
+      setSuccess(null);
+      setFormError(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [success, formError]);
+
   if (view === 'form') {
     return (
       <div className="admin-page">

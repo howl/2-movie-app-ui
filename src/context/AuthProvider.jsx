@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthContext } from './AuthContext.js';
 import { getToken, setToken, removeToken } from '../utils/storage.js';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setTokenState] = useState(() => getToken());
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      setTokenState(null);
+      removeToken();
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
 
   const login = (userData, authToken) => {
     setUser(userData);

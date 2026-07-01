@@ -37,6 +37,7 @@ const request = async (endpoint, options = {}) => {
 
   if (response.status === 401) {
     removeToken();
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     throw new Error(body.msg || 'Unauthorized');
   }
 
