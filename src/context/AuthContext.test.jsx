@@ -190,4 +190,20 @@ describe('AuthContext', () => {
     expect(result.current.token).toBe('t3');
     expect(mockSetToken).toHaveBeenCalledTimes(3);
   });
+
+  it('logs out when auth:unauthorized event is dispatched', () => {
+    mockGetToken.mockReturnValue('stored-token');
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider });
+
+    expect(result.current.isAuthenticated).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+    expect(result.current.token).toBeNull();
+    expect(mockRemoveToken).toHaveBeenCalled();
+  });
 });

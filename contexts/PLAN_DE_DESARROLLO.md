@@ -183,7 +183,7 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 
 ---
 
-## Fase 7 — Refinamiento final
-- Redirects en casos edge (token expirado, 401 global)
-- Feedback visual en acciones (estado de carga en botones, mensajes de éxito/error temporales)
-- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
+## Fase 7 — Refinamiento final ✅
+- Redirects en casos edge (token expirado, 401 global) ✅
+- Feedback visual en acciones (estado de carga en botones, mensajes de éxito/error temporales) ✅
+- ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run` ✅

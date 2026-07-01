@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './SearchBar.scss';
 
 export const SearchBar = ({ onSearch }) => {
   const [term, setTerm] = useState('');
+  const initialized = useRef(false);
 
   useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      return;
+    }
+
     const timer = setTimeout(() => {
       onSearch(term);
     }, 300);

@@ -5,6 +5,14 @@ Todas las versiones notables de Movie App UI se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/),
 y versionado con [SemVer](https://semver.org/).
 
+## [0.7.0] — 2026-07-01
+
+### Añadido
+- 401 global redirect: api.js dispara evento `auth:unauthorized`, AuthProvider escucha y hace logout automático
+- SearchBar: evita búsqueda inicial al montar (skip debounce si term vacío)
+- AdminPage: auto-dismiss de mensajes éxito/error tras 3 segundos
+- Tests: 273 tests total
+
 ## [0.6.0] — 2026-07-01
 
 ### Añadido
