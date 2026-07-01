@@ -59,4 +59,15 @@ describe('LoginForm', () => {
     renderLoginForm({ loading: true });
     expect(screen.getByRole('button', { name: 'Cargando...' })).toHaveTextContent('Cargando...');
   });
+
+  it('renders multiple field errors', () => {
+    renderLoginForm({ errors: { email: 'Email is required', password: 'Password is required' } });
+    expect(screen.getByText('Email is required')).toBeInTheDocument();
+    expect(screen.getByText('Password is required')).toBeInTheDocument();
+  });
+
+  it('renders with no errors prop', () => {
+    renderLoginForm({ errors: undefined });
+    expect(screen.getByRole('button', { name: 'Iniciar sesión' })).toBeInTheDocument();
+  });
 });
