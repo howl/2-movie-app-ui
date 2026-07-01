@@ -49,7 +49,9 @@ src/
 ├── App.jsx
 ├── App.scss
 ├── main.jsx
-└── index.scss
+├── index.scss
+├── docs/           # Decisiones de desarrollo, guías de estilo
+└── CHANGELOG.md
 ---
 Los archivos de test (`*.test.js` o `*.test.jsx`) se ubican junto al archivo
 que testean. Ejemplo:
@@ -105,7 +107,9 @@ const API_URL = import.meta.env.MOVIE_API_URL;
 
 ### Lenguaje y formato
 - JavaScript (ES6+ modules). NO TypeScript.
-- Named exports SIEMPRE: `export const ComponentName = () => { ... }`
+- Named exports SIEMPRE: `export const ComponentName = () => { ... }`. NUNCA usar `export default`.
+- Punto y coma AL FINAL DE CADA SENTENCIA. Siempre.
+- Comas finales en arrays, objetos, imports multilínea y parámetros de función.
 - Componentes funcionales + hooks. NUNCA clases.
 - Funciones flecha SIEMPRE. NUNCA usar `function`. Si por algún motivo de fuerza mayor fuese necesario, consultar con el usuario antes de proceder.
 
@@ -137,6 +141,7 @@ import './LoginPage.scss';
 - Variables globales en `styles/_variables.scss`
 - Mixins reutilizables en `styles/_mixins.scss`
 - Metodología BEM o anidamiento moderado, sin mezclar ambos enfoques en un mismo archivo (máximo 3 niveles de profundidad)
+- Diseño responsive con enfoque mobile-first
 
 ### Extensiones en imports
 - Incluir SIEMPRE la extensión del archivo en imports: `.js`, `.jsx`, `.scss`.
@@ -155,9 +160,15 @@ import './LoginPage.scss';
 - **Package manager**: npm. NO usar pnpm, yarn, bun ni otros gestores. Todos los comandos de instalación deben ejecutarse con `npm install <paquete>`.
 - **Utilidades**: NO instalar lodash, ramda u otras librerías de utilidades. Usar funciones nativas de JS.
 
+### React Compiler
+
+El proyecto utiliza el React Compiler (`babel-plugin-react-compiler`),
+que optimiza automáticamente memoización y re-renderizados.
+- NO usar `useMemo` ni `useCallback`.
+- El compilador se encarga de esas optimizaciones de forma automática.
+
 ---
 
-## Referencia de la API
 
 Extraído de `@contexts/movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_URL`.
 
@@ -299,6 +310,7 @@ const MiComponente = () => {
 - El caso sin datos es un sub-estado de `success`: la API respondió bien pero no hay contenido. Mostrar mensaje contextual según dominio (búsqueda sin resultados, lista vacía de favoritos, etc.).
 - Los botones de acciones (guardar, eliminar, favorito) deben mostrar estado de carga independiente mientras la operación está en curso.
 - Los errores de validación de formularios se muestran por campo, no como mensaje global.
+- `ErrorMessage` es el componente único para mostrar errores en toda la app. Todas las páginas y componentes lo usan para errores de API, validación y estados vacíos.
 
 ### Hook `useFetch`
 
@@ -341,14 +353,22 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
 ### Stack de testing
 - **Framework**: Vitest (integrado con Vite)
 - **Librería**: Testing Library (React) + jest-dom
+- **E2E**: Playwright
 - **Mocks**: fetch con `vi.fn()` (sin dependencias externas)
 
 ### Cobertura por capa
-| Capa | Qué testear | Cómo |
-|---|---|---|
-| services/ | Llamadas HTTP, parseo, errores | Mockear `global.fetch` con `vi.fn()` |
-| hooks/ | Estados loading/error/data, execute | `renderHook` de Testing Library |
-| components/ | Render condicional, eventos, props | `render` + `screen` + `userEvent` |
+| Tipo | Capa | Qué testear | Herramienta |
+|---|---|---|---|
+| Unitario | services/ | Llamadas HTTP, parseo, errores | `vi.fn()` mockeando fetch |
+| Unitario | utils/ | Validadores, storage, constantes | Vitest directo |
+| Unitario | hooks/ | Estados loading/error/data, execute | `renderHook` |
+| Integración | pages/ + components/ | Flujos completos (login → búsqueda → favorito) | `render` + `screen` + `userEvent` |
+| E2E | Navegador | Registrar → login → buscar → favorito → admin CRUD | Playwright |
+
+### Reglas de testing
+- Cada test prueba **una sola cosa** (una aserción lógica por test).
+- Probar **border cases**: arrays vacíos, null/undefined, errores HTTP, límites de caracteres, IDs inválidos.
+- Los tests E2E se ubican en `e2e/` en la raíz del proyecto.
 
 ---
 
@@ -398,3 +418,8 @@ Carga ese archivo cuando vayas a comenzar una fase. Las fases son:
   - Ejemplos: `feat: añadir servicio de autenticación`, `refactor: extraer useForm hook`, `fix: redirigir al login tras 401`
 - Commits atómicos: uno por fase o por componente significativo
 - NO hacer push a menos que se solicite explícitamente
+- Versionado semántico (SemVer): `MAJOR.MINOR.PATCH`
+  - MAJOR: cambios incompatibles en API o UI
+  - MINOR: nuevas funcionalidades
+  - PATCH: bug fixes y refactors
+- Mantener `CHANGELOG.md` con registro de cambios por versión

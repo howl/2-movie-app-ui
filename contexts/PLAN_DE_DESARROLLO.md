@@ -7,13 +7,18 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 
 ## Fase 0 — Setup inicial
 - `npm install react-router sass`
-- `npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event`
+- `npm install -D vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event @playwright/test`
 - Configurar `package.json` con scripts:
   - `"test": "vitest"`
   - `"test:run": "vitest run"`
 - Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
 - Crear estructura de directorios `src/`
 - Crear `src/tests/setup.js` con `import '@testing-library/jest-dom'`
+- Crear `e2e/` con configuración de Playwright
+- Crear `CHANGELOG.md` con formato Keep a Changelog
+- Crear `docs/` con:
+  - `docs/DECISIONS.md` — registro de decisiones de arquitectura
+  - `docs/STYLE_GUIDE.md` — ejemplos adicionales de patrones de código
 - Modificar `vite.config.js`:
   - Añadir `envPrefix: 'MOVIE_'`
   - Añadir configuración de test:
@@ -84,7 +89,11 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
       - Si ok → `<Outlet />`
     - `src/components/common/Loading.jsx` + `Loading.scss` — componente skeleton
     - `src/components/common/ErrorMessage.jsx` + `ErrorMessage.scss`
-    - `src/styles/_variables.scss` — colores, fuentes, breakpoints
+      — Componente universal de error. Acepta `message` (string) y opcionalmente
+      `type` (error, warning, info). Se usa en todas las páginas.
+    - `src/styles/_variables.scss` — colores, fuentes, breakpoints mobile-first:
+      $breakpoint-sm: 576px, $breakpoint-md: 768px, $breakpoint-lg: 992px,
+      $breakpoint-xl: 1200px
     - `src/styles/_mixins.scss` — `respond-to($breakpoint)`, `flex-center`, etc.
     - `src/index.scss` — reset, imports de variables y mixins, estilos base
     - `src/App.scss` — layout general (min-height 100vh, sticky footer)
@@ -121,6 +130,8 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
    - Tests para SearchBar.jsx, MovieCard.jsx, MovieList.jsx, MovieDetail.jsx,
      FavoriteButton.jsx, FavoritesList.jsx, useFetch.js,
      SearchPage.jsx, MoviePage.jsx, FavoritesPage.jsx
+   - Tests de integración: flujo búsqueda → detalle → favorito
+   - Tests E2E: buscar película, ver detalle, añadir/eliminar favorito
 2. Implementar archivos (GREEN)
     - `src/components/movies/SearchBar.jsx` + `SearchBar.scss`:
       - Input + botón de búsqueda
@@ -155,6 +166,8 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 ## Fase 6 — Páginas de administración
 1. Escribir tests (RED)
    - Tests para AdminMovieTable.jsx, AdminMovieForm.jsx, AdminPage.jsx
+   - Tests de integración: crear película → listar → editar → eliminar
+   - Tests E2E: CRUD completo de película como administrador
 2. Implementar archivos (GREEN)
     - `src/components/admin/AdminMovieTable.jsx` + `AdminMovieTable.scss`:
       - Tabla con todas las películas y columnas: título, año, director, duración, acciones (editar, eliminar)
@@ -175,5 +188,4 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 ## Fase 7 — Refinamiento final
 - Redirects en casos edge (token expirado, 401 global)
 - Feedback visual en acciones (estado de carga en botones, mensajes de éxito/error temporales)
-- Responsive básico con media queries via `_mixins.scss`
 - ✅ Verificar: `npm run lint` + `npm run build` + `npm run test:run`
