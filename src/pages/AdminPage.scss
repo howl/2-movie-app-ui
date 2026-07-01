@@ -1,0 +1,25 @@
+@use '../styles/variables' as *;
+
+.admin-page {
+  padding: $spacing-md 0;
+
+  h1 {
+    margin-bottom: $spacing-sm;
+  }
+
+  > button {
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $radius-md;
+    border: 1px solid $accent-color;
+    background: transparent;
+    color: $accent-color;
+    cursor: pointer;
+    font-size: $font-size-base;
+    margin-bottom: $spacing-sm;
+
+    &:hover {
+      background-color: $accent-color;
+      color: $accent-fg-color;
+    }
+  }
+}

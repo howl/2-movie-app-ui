@@ -1,0 +1,60 @@
+@use '../../styles/variables' as *;
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  max-width: 500px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    font-weight: bold;
+    font-size: $font-size-base;
+  }
+
+  input, textarea {
+    padding: $spacing-xs $spacing-sm;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    font-size: $font-size-base;
+    font-family: $font-family-sans;
+
+    &:focus {
+      outline: 2px solid $accent-color;
+      outline-offset: -2px;
+    }
+  }
+
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  button[type='submit'] {
+    background-color: $accent-color;
+    color: $accent-fg-color;
+    border: none;
+    border-radius: $radius-md;
+    padding: $spacing-xs $spacing-sm;
+    font-size: $font-size-base;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-start;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &-success {
+    color: $success-color;
+    font-weight: bold;
+  }
+
+  &-error {
+    color: $error-color;
+  }
+}
