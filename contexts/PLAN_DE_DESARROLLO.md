@@ -11,7 +11,9 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
 - Configurar `package.json` con scripts:
   - `"test": "vitest"`
   - `"test:run": "vitest run"`
-- Crear `.env` con `MOVIE_API_URL=http://localhost:3000`
+- Crear `.env.example` con `MOVIE_API_URL=` (solo el nombre, sin valor)
+- Crear `.env` local a partir de `.env.example`: `cp .env.example .env` y rellenar valor
+- Añadir `.env` a `.gitignore`
 - Crear estructura de directorios `src/`
 - Crear `src/tests/setup.js` con `import '@testing-library/jest-dom'`
 - Crear `e2e/` con configuración de Playwright
@@ -29,6 +31,8 @@ Guía de pruebas de `@AGENTS.md`. Cada fase debe completarse en orden.
     }
     ```
 - ✅ Verificar: `npm run dev` no da errores + `npm run test:run` ejecuta correctamente
+
+> **Nota**: Si en fases posteriores se añaden nuevas variables de entorno, actualizar también `.env.example` con el nombre de la nueva variable.
 
 ---
 

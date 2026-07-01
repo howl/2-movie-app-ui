@@ -81,7 +81,7 @@ services/
 ## Configuración del entorno
 
 ### Variables de entorno
-Las variables de entorno públicas usan el prefijo `MOVIE_` y se definen en un archivo `.env` en la raíz del proyecto.
+Las variables de entorno públicas usan el prefijo `MOVIE_` y se definen en un archivo `.env` en la raíz del proyecto. Este archivo NO se sube al repositorio (está en `.gitignore`).
 
 | Variable | Descripción | Valor por defecto (desarrollo) |
 |---|---|---|
@@ -89,17 +89,25 @@ Las variables de entorno públicas usan el prefijo `MOVIE_` y se definen en un a
 
 **Importante**: Para que Vite exponga variables con prefijo `MOVIE_`, el archivo `vite.config.js` debe incluir `envPrefix: 'MOVIE_'` en la configuración.
 
-### Archivo `.env`
-Crear en la raíz del proyecto:
+### Archivo `.env` (local, no se sube)
+Cada desarrollador crea su propio `.env` a partir de la plantilla:
 ```
-MOVIE_API_URL=http://localhost:3000
+cp .env.example .env
 ```
 
-### Acceso en código
-Las variables de entorno se acceden mediante `import.meta.env`:
-```js
-const API_URL = import.meta.env.MOVIE_API_URL;
+### Archivo `.env.example` (plantilla, se sube al repo)
+Contiene SOLO los nombres de las variables, sin valores, como documentación de qué variables necesita el proyecto:
 ```
+MOVIE_API_URL=
+```
+
+### Reglas para nuevas variables
+- Cuando se añada una nueva variable de entorno en cualquier fase del desarrollo, se debe actualizar `.env.example` añadiendo la nueva variable.
+- `.env` NUNCA se sube al repositorio. Si se detecta intento de commit, detenerlo.
+- Las variables se acceden en código mediante `import.meta.env`:
+  ```js
+  const API_URL = import.meta.env.MOVIE_API_URL;
+  ```
 
 ---
 
