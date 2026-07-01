@@ -1,3 +1,5 @@
+import './AdminMovieTable.scss';
+
 export const AdminMovieTable = ({ movies, onEdit, onDelete }) => {
   if (!movies || movies.length === 0) {
     return <p className="admin-table-empty">No hay películas en el catálogo</p>;

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { adminService } from '../services/adminService.js';
+import { useFetch } from '../hooks/useFetch.js';
 import { AdminMovieTable } from '../components/admin/AdminMovieTable.jsx';
 import { AdminMovieForm } from '../components/admin/AdminMovieForm.jsx';
 import { Loading } from '../components/common/Loading.jsx';
 import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
-import { adminService } from '../services/adminService.js';
-import { useFetch } from '../hooks/useFetch.js';
+import './AdminPage.scss';
 
 export const AdminPage = () => {
   const [view, setView] = useState('list');
@@ -26,12 +27,8 @@ export const AdminPage = () => {
   };
 
   const handleDelete = async (id) => {
-    try {
-      await adminService.remove(id);
-      moviesFetch.execute(adminService.getAll);
-    } catch {
-      // ErrorBoundary handles it
-    }
+    await adminService.remove(id);
+    moviesFetch.execute(adminService.getAll);
   };
 
   const handleCreate = () => {

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { ErrorMessage } from '../common/ErrorMessage.jsx';
+import './AdminMovieForm.scss';
 
 export const AdminMovieForm = ({ onSubmit, initialData, success, error, loading }) => {
   const [title, setTitle] = useState(initialData?.title || '');
@@ -29,7 +31,7 @@ export const AdminMovieForm = ({ onSubmit, initialData, success, error, loading 
   return (
     <form className="admin-form" onSubmit={handleSubmit}>
       {success && <p className="admin-form-success">{success}</p>}
-      {error && <p className="admin-form-error">{error}</p>}
+      {error && <ErrorMessage message={error} />}
 
       <label>Título<input value={title} onChange={(e) => setTitle(e.target.value)} /></label>
       <label>Año<input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} /></label>

@@ -30,4 +30,10 @@
       background-color: $shade-color;
     }
   }
+
+  &-empty {
+    color: $border-color;
+    font-size: $font-size-base;
+    padding: $spacing-md 0;
+  }
 }
