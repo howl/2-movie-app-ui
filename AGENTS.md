@@ -394,6 +394,12 @@ implementación. Ciclo: RED (test falla) → GREEN (implementar) → REFACTOR.
   - No existentes: ID de usuario/película que no existe en el sistema
   - Caracteres especiales: espacios, unicode, símbolos, muy largos
 - Probar tanto el **camino feliz** (happy path) como cada **caso de error** documentado en la API.
+- La IA debe pensar críticamente y profúndamente para identificar todos los casos límite
+  posibles más allá de la lista de ejemplos anterior. No limitarse a la lista.
+  Preguntarse: ¿qué pasa si este valor es...? ¿y si la respuesta no tiene este campo?
+  ¿y si la red falla justo aquí? ¿y si el usuario envía datos maliciosos?
+  Cada función, componente o flujo debe tener sus propios border cases únicos
+  identificados por la IA, no solo los genéricos de la lista.
 - Los tests E2E se ubican en `e2e/` en la raíz del proyecto.
 
 ---
