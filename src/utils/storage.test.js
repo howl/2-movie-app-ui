@@ -33,4 +33,31 @@ describe('storage', () => {
     setToken('test-token');
     expect(sessionStorage.getItem(STORAGE_KEY)).toBe('test-token');
   });
+
+  it('returns null after sessionStorage is cleared externally', () => {
+    setToken('test-token');
+    sessionStorage.clear();
+    expect(getToken()).toBeNull();
+  });
+
+  it('stores empty string token', () => {
+    setToken('');
+    expect(getToken()).toBe('');
+  });
+
+  it('stores token with special characters', () => {
+    const specialToken = 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.abc123_$!@';
+    setToken(specialToken);
+    expect(getToken()).toBe(specialToken);
+  });
+
+  it('removeToken does not throw when no token exists', () => {
+    expect(() => removeToken()).not.toThrow();
+  });
+
+  it('stores and retrieves a very long token', () => {
+    const longToken = 'a'.repeat(5000);
+    setToken(longToken);
+    expect(getToken()).toBe(longToken);
+  });
 });
