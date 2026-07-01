@@ -169,6 +169,7 @@ que optimiza automáticamente memoización y re-renderizados.
 
 ---
 
+## Referencia de la API
 
 Extraído de `@contexts/movie-app-api.yaml`. Base URL desde `import.meta.env.MOVIE_API_URL`.
 
@@ -386,7 +387,7 @@ Carga ese archivo cuando vayas a comenzar una fase. Las fases son:
 | **Fase 4** | Páginas de autenticación: Login, Signup, `useForm` |
 | **Fase 5** | Páginas de usuario: SearchBar, MovieCard, MovieList, MovieDetail, FavoriteButton, FavoritesList, `useFetch` |
 | **Fase 6** | Páginas de administración: AdminMovieTable, AdminMovieForm, AdminPage |
-| **Fase 7** | Refinamiento final: redirects, feedback visual, responsive |
+| **Fase 7** | Refinamiento final: redirects, feedback visual |
 
 ---
 
