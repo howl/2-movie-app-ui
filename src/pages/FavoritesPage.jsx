@@ -7,25 +7,25 @@ import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
 import './FavoritesPage.scss';
 
 export const FavoritesPage = () => {
-  const favoritesFetch = useFetch();
+  const { data: favData, loading: favLoading, error: favError, execute: executeFav } = useFetch();
 
   useEffect(() => {
-    favoritesFetch.execute(movieService.getFavorites);
-  }, []);
+    executeFav(movieService.getFavorites);
+  }, [executeFav]);
 
   const handleRemoveFavorite = async (movieId) => {
     await movieService.removeFavorite(movieId);
-    favoritesFetch.execute(movieService.getFavorites);
+    executeFav(movieService.getFavorites);
   };
 
-  if (favoritesFetch.loading) return <Loading />;
-  if (favoritesFetch.error) return <ErrorMessage message={favoritesFetch.error} />;
+  if (favLoading) return <Loading />;
+  if (favError) return <ErrorMessage message={favError} />;
 
   return (
     <div className="favorites-page">
       <h1>Mis favoritos</h1>
       <FavoritesList
-        movies={favoritesFetch.data?.msg}
+        movies={favData?.msg}
         onToggleFavorite={handleRemoveFavorite}
       />
     </div>

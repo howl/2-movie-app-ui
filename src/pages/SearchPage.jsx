@@ -7,29 +7,29 @@ import { ErrorMessage } from '../components/common/ErrorMessage.jsx';
 import './SearchPage.scss';
 
 export const SearchPage = () => {
-  const searchFetch = useFetch();
-  const favoritesFetch = useFetch();
+  const { data: searchData, loading: searchLoading, error: searchError, execute: executeSearch } = useFetch();
+  const { data: favData, execute: executeFav } = useFetch();
 
   const handleSearch = (title) => {
-    searchFetch.execute(movieService.search, title);
+    executeSearch(movieService.search, title);
   };
 
   const handleToggleFavorite = async (movieId) => {
     await movieService.addFavorite(movieId);
-    favoritesFetch.execute(movieService.getFavorites);
+    executeFav(movieService.getFavorites);
   };
 
   const isFavorite = (movieId) => {
-    return favoritesFetch.data?.msg?.some((fav) => fav._id === movieId);
+    return favData?.msg?.some((fav) => fav._id === movieId);
   };
 
   return (
     <div className="search-page">
       <SearchBar onSearch={handleSearch} />
-      {searchFetch.loading && <Loading />}
-      {searchFetch.error && <ErrorMessage message={searchFetch.error} />}
+      {searchLoading && <Loading />}
+      {searchError && <ErrorMessage message={searchError} />}
       <MovieList
-        movies={searchFetch.data?.msg || searchFetch.data?.peliculas}
+        movies={searchData?.msg || searchData?.peliculas}
         isFavorite={isFavorite}
         onToggleFavorite={handleToggleFavorite}
       />

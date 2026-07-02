@@ -13,11 +13,20 @@ export const AdminPage = () => {
   const [success, setSuccess] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState(null);
-  const moviesFetch = useFetch();
+  const { data: moviesData, loading: moviesLoading, error: moviesError, execute: executeMovies } = useFetch();
 
   useEffect(() => {
-    moviesFetch.execute(adminService.getAll);
-  }, []);
+    executeMovies(adminService.getAll);
+  }, [executeMovies]);
+
+  useEffect(() => {
+    if (!success && !formError) return;
+    const timer = setTimeout(() => {
+      setSuccess(null);
+      setFormError(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [success, formError]);
 
   const handleEdit = (movie) => {
     setEditingMovie(movie);
@@ -28,7 +37,7 @@ export const AdminPage = () => {
 
   const handleDelete = async (id) => {
     await adminService.remove(id);
-    moviesFetch.execute(adminService.getAll);
+    executeMovies(adminService.getAll);
   };
 
   const handleCreate = () => {
@@ -49,22 +58,13 @@ export const AdminPage = () => {
         await adminService.create(formData);
       }
       setSuccess(editingMovie ? 'Película actualizada correctamente' : 'Película creada correctamente');
-      moviesFetch.execute(adminService.getAll);
+      executeMovies(adminService.getAll);
     } catch (err) {
       setFormError(err.message || 'Error al guardar la película');
     } finally {
       setFormLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!success && !formError) return;
-    const timer = setTimeout(() => {
-      setSuccess(null);
-      setFormError(null);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [success, formError]);
 
   if (view === 'form') {
     return (
@@ -86,10 +86,10 @@ export const AdminPage = () => {
     <div className="admin-page">
       <h1>Administrar películas</h1>
       <button onClick={handleCreate}>Nueva película</button>
-      {moviesFetch.loading && <Loading />}
-      {moviesFetch.error && <ErrorMessage message={moviesFetch.error} />}
+      {moviesLoading && <Loading />}
+      {moviesError && <ErrorMessage message={moviesError} />}
       <AdminMovieTable
-        movies={moviesFetch.data?.movies}
+        movies={moviesData?.movies}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

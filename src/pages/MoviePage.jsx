@@ -9,23 +9,23 @@ import './MoviePage.scss';
 
 export const MoviePage = () => {
   const { id } = useParams();
-  const movieFetch = useFetch();
-  const favoritesFetch = useFetch();
+  const { data: movieData, loading: movieLoading, error: movieError, execute: executeMovie } = useFetch();
+  const { data: favData, execute: executeFav } = useFetch();
 
   useEffect(() => {
-    movieFetch.execute(movieService.getById, id);
-  }, [id]);
+    executeMovie(movieService.getById, id);
+  }, [id, executeMovie]);
 
   useEffect(() => {
-    favoritesFetch.execute(movieService.getFavorites);
-  }, []);
+    executeFav(movieService.getFavorites);
+  }, [executeFav]);
 
-  if (movieFetch.loading) return <Loading />;
-  if (movieFetch.error) return <ErrorMessage message={movieFetch.error} />;
-  if (!movieFetch.data) return null;
+  if (movieLoading) return <Loading />;
+  if (movieError) return <ErrorMessage message={movieError} />;
+  if (!movieData) return null;
 
-  const movie = movieFetch.data.msg;
-  const isFavorite = favoritesFetch.data?.msg?.some((fav) => fav._id === id);
+  const movie = movieData.msg;
+  const isFavorite = favData?.msg?.some((fav) => fav._id === id);
 
   const handleToggleFavorite = async () => {
     if (isFavorite) {
@@ -33,7 +33,7 @@ export const MoviePage = () => {
     } else {
       await movieService.addFavorite(id);
     }
-    favoritesFetch.execute(movieService.getFavorites);
+    executeFav(movieService.getFavorites);
   };
 
   return (
